@@ -34,7 +34,7 @@ const Home = () => {
               className="text-[1.5rem] pb-5"
               style={{ fontFamily: "Poppins-Medium" }}
             >
-              Today's Weather
+              Today&apos;s Weather
             </Text>
 
             <ImageBackground source={sunny} style={style.image}>
@@ -46,65 +46,32 @@ const Home = () => {
                   "rgba(191, 186, 186, 0.50)",
                 ]}
               >
-                {/**weather temp */}
-                <View className="flex justify-center items-center pt-5">
-                  <Text style={style.location}>Malabon</Text>
-                  <Text style={style.temperature}>33 °C</Text>
+                <View className="flex flex-col pt-14">
+                  {/**weather temp */}
+                  <View className="items-center">
+                    <Text style={style.location}>Malabon</Text>
+                    <Text style={style.temperature}>33 °C</Text>
 
-                  <View className="flex-row items-center">
-                    <Image source={sunnyLogo} style={style.weatherImage} />
-                    <Text style={style.weather}>Sunny</Text>
+                    <View className="flex-row items-center ">
+                      <Image source={sunnyLogo} style={style.weatherImage} />
+                      <Text style={style.weather}>Sunny</Text>
+                    </View>
+                  </View>
+
+                  {/*other stats */}
+                  <View className="flex-row justify-evenly mx-4 mt-5">
+                    {/**wind speed*/}
+                    <View className="flex-row gap-2 items-center ">
+                      <Feather name="wind" size={20} color="#393636" />
+                      <Text className="text-md">22km</Text>
+                    </View>
+                    {/**humidity*/}
+                    <View className="flex-row gap-2 items-center ">
+                      <Feather name="droplet" size={20} color="#393636" />
+                      <Text className="text-md">23%</Text>
+                    </View>
                   </View>
                 </View>
-
-                {/*other stats */}
-                <View className="flex-row justify-evenly mx-4 mt-2">
-                  {/**wind speed*/}
-                  <View className="flex-row gap-2 items-center ">
-                    <Feather name="wind" size={18} color="#393636" />
-                    <Text className="text-sm">22km</Text>
-                  </View>
-                  {/**humidity*/}
-                  <View className="flex-row gap-2 items-center ">
-                    <Feather name="droplet" size={18} color="#393636" />
-                    <Text className="text-sm">23%</Text>
-                  </View>
-                </View>
-
-                <ScrollView
-                  horizontal
-                  contentContainerStyle={{ paddingHorizontal: 5 }}
-                  showsHorizontalScrollIndicator={false}
-                >
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-2 my-5 mx-1 gap-2">
-                    <Image source={rainyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Monday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={sunnyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Tuesday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={rainyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Wednesday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={sunnyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Thusday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={rainyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Friday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={rainyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Saturday</Text>
-                  </View>
-                  <View className="bg-[rgba(255,255,255,0.43)] flex justify-center items-center w-24 rounded-3xl p-3 my-5 mx-1 gap-2">
-                    <Image source={rainyLogo} style={style.forecastImage} />
-                    <Text style={style.forecastFont}>Sunday</Text>
-                  </View>
-                </ScrollView>
               </LinearGradient>
             </ImageBackground>
           </View>
@@ -184,17 +151,17 @@ const style = StyleSheet.create({
   },
   location: {
     fontFamily: "Poppins-Medium",
-    fontSize: 18,
+    fontSize: 20,
     color: "#393636",
   },
   temperature: {
     fontFamily: "Poppins-Regular",
-    fontSize: 40,
+    fontSize: 50,
     color: "#393636",
   },
   weather: {
     fontFamily: "Poppins-Regular",
-    fontSize: 15,
+    fontSize: 17,
     color: "#393636",
   },
   weatherImage: {

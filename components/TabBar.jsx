@@ -18,7 +18,7 @@ const TabBar = ({state, descriptors, navigation}) => {
       <View className='absolute bottom-11 w-[90%] h-[4.5rem] flex justify-center items-center  flex-row content-center  bg-[#003366] text-white rounded-[1.8rem]'
         style={style.shadow}
       >
-      {state.routes.map((route, index) => {
+      {state.routes.filter((route) => icons[route.name]).map((route, index) => {
         const { options } = descriptors[route.key];
         const label =
           options.tabBarLabel !== undefined
