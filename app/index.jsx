@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
@@ -17,17 +18,45 @@ const sunny = require("../assets/images/cloud-blue-sky.jpg");
 const rainy = require("../assets/images/rainy-weather.jpg");
 const relief = require("../assets/images/relief.jpg");
 const reminder = require("../assets/images/reminder.png");
-
+const sLogo = require("../assets/images/saferoute-logo.png");
 const Home = () => {
   return (
-    <ScrollView vertical showsHorizontalScrollIndicator={false}>
-      <SafeAreaView className="bg-white px-4 py-2 w-full h-full">
-        <View className="flex flex-row items-center mb-3 mt-3">
-          <Text className="text-[1em] " style={{ fontFamily: "Montserrat" }}>
-            Hi! Welcome Resident!
-          </Text>
+    <SafeAreaView className="bg-white w-full h-full">
+      <View style={{ overflow: "hidden", paddingBottom: 3 }}>
+        <View
+          className="py-3 bg-white px-4"
+          style={{
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.5,
+            shadowRadius: 4,
+            elevation: 8,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={{ display: "flex", flexDirection: "row" }}>
+            <Image source={sLogo} className="w-12 h-10" />
+            <Text
+              style={{ fontFamily: "Montserrat-Bold", fontSize: 17 }}
+              className="ml-4 mt-1.5"
+            >
+              Saferoute
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            className="mr-1"
+            onPress={() => console.log("bell pressed")}
+          >
+            <Ionicons name="notifications-outline" size={24} color="black" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity className="mb-3 mt-4">
+      </View>
+      <ScrollView vertical showsHorizontalScrollIndicator={false}>
+        <TouchableOpacity className="mb-3 mt-3">
           <ImageBackground source={sunny} style={style.image}>
             <LinearGradient
               className="absolute"
@@ -83,7 +112,7 @@ const Home = () => {
           </ImageBackground>
         </View>
 
-        <View className="mb-5">
+        <View className="mb-5 ml-4">
           <Text className="text-[1.1rem]" style={{ fontFamily: "Montserrat" }}>
             Latest Updates
           </Text>
@@ -98,26 +127,26 @@ const Home = () => {
               className="mt-2"
               showsHorizontalScrollIndicator={false}
             >
-              <View className="w-[9.5rem] bg-red-600 mr-5 h-[12rem] rounded-xl">
+              <View className="w-[14rem] bg-red-600 mr-5 h-[12rem] rounded-xl">
                 <Text></Text>
               </View>
 
-              <View className="w-[9.5rem] bg-[rgba(31,29,29,0.43)] mr-5 h-[12rem] rounded-xl">
+              <View className="w-[14rem] bg-[rgba(31,29,29,0.43)] mr-5 h-[12rem] rounded-xl">
                 <Text></Text>
               </View>
 
-              <View className="w-[9.5rem] bg-[rgba(63,63,63,0.43)] mr-5 h-[12rem] rounded-xl">
+              <View className="w-[14rem] bg-[rgba(63,63,63,0.43)] mr-5 h-[12rem] rounded-xl">
                 <Text></Text>
               </View>
 
-              <View className="w-[9.5rem] bg-[rgba(66,62,62,0.43)] mr-5 h-[12rem] rounded-xl">
+              <View className="w-[14rem] bg-[rgba(66,62,62,0.43)] mr-5 h-[12rem] rounded-xl">
                 <Text></Text>
               </View>
             </ScrollView>
           </View>
         </View>
 
-        <View>
+        <View className="ml-4">
           <Text className="text-[1.1rem] " style={{ fontFamily: "Montserrat" }}>
             Things to remember
           </Text>
@@ -125,8 +154,8 @@ const Home = () => {
             <Image source={reminder} style={style.imageRemember} />
           </View>
         </View>
-      </SafeAreaView>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
