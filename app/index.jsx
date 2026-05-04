@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import {
+  Dimensions,
   Image,
   ImageBackground,
   ScrollView,
@@ -19,19 +20,19 @@ const rainy = require("../assets/images/rainy-weather.jpg");
 const relief = require("../assets/images/relief.jpg");
 const reminder = require("../assets/images/reminder.png");
 const sLogo = require("../assets/images/saferoute-logo.png");
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
 const Home = () => {
   const [notificationCount, setNotificationCount] = useState(0);
+
   return (
-    <SafeAreaView className="bg-white w-full h-full">
+    <SafeAreaView className="bg-[#fcfcfc] w-full h-full">
       <View style={{ overflow: "hidden", paddingBottom: 3 }}>
         <View
           className="py-3 bg-white px-4"
           style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 6 },
-            shadowOpacity: 0.5,
-            shadowRadius: 4,
-            elevation: 8,
+            elevation: 3,
             display: "flex",
             flexDirection: "row",
             alignItems: "center",
@@ -122,6 +123,7 @@ const Home = () => {
           </ImageBackground>
         </View>
 
+        {/**article */}
         <View className="mb-5 ml-4">
           <Text className="text-[1.1rem]" style={{ fontFamily: "Montserrat" }}>
             Latest Updates
@@ -134,8 +136,8 @@ const Home = () => {
           <View>
             <ScrollView
               horizontal
-              className="mt-2"
               showsHorizontalScrollIndicator={false}
+              style={style.article}
             >
               <View className="w-[14rem] bg-red-600 mr-5 h-[12rem] rounded-xl">
                 <Text></Text>
@@ -157,11 +159,15 @@ const Home = () => {
         </View>
 
         <View className="ml-4">
-          <Text className="text-[1.1rem] " style={{ fontFamily: "Montserrat" }}>
+          <Text className="text-[1.1rem]" style={{ fontFamily: "Montserrat" }}>
             Things to remember
           </Text>
-          <View>
-            <Image source={reminder} style={style.imageRemember} />
+          <View style={style.reminderContainer}>
+            <Image
+              source={reminder}
+              style={style.imageRemember}
+              resizeMode="contain"
+            />
           </View>
         </View>
       </ScrollView>
@@ -181,18 +187,27 @@ const style = StyleSheet.create({
     elevation: 19,
   },
   announcement: {
-    width: 330,
+    width: SCREEN_WIDTH - 32,
     marginLeft: 20,
     padding: 10,
   },
-  imageRemember: {
-    width: 360,
-    height: 1000,
+  article: {
+    marginTop: 5,
+    width: SCREEN_WIDTH - 32,
+  },
+  reminderContainer: {
+    marginTop: 3,
+    width: SCREEN_WIDTH - 32,
     borderRadius: 15,
+    overflow: "hidden",
+  },
+  imageRemember: {
+    width: "100%",
+    height: 845,
     marginBottom: 100,
   },
   image: {
-    width: 360,
+    width: SCREEN_WIDTH - 32,
     height: 70,
     borderRadius: 10,
     overflow: "hidden",
@@ -207,7 +222,7 @@ const style = StyleSheet.create({
     elevation: 19,
   },
   image2: {
-    width: 360,
+    width: SCREEN_WIDTH - 32,
     height: 85,
     borderRadius: 10,
     overflow: "hidden",
