@@ -93,24 +93,52 @@ export default function Maps() {
   injectSegmentsRef.current = () => {
     if (!segmentsRef.current || !webViewRef.current) return;
 
-    webViewRef.current.injectJavaScript(`
-      (function() {
-        if (window.segmentsLayer) window.segmentsLayer.remove();
-        window.segmentsLayer = L.layerGroup().addTo(map);
+    const s = webViewStyles.segment;
+    const depthColors = JSON.stringify(s.depthColors);
 
-        const segments = ${JSON.stringify(segmentsRef.current)};
-        segments.forEach(function(segment) {
-          const polyline = L.polyline(segment.coords, {
-            color: 'red',
-            weight: 4,
-            opacity: 0.8,
-            smoothFactor: 1
-          }).addTo(window.segmentsLayer);
-          polyline.bindPopup(segment.floodReport?.description ?? "Segment");
+    webViewRef.current.injectJavaScript(`
+    (function() {
+      if (window.segmentsLayer) window.segmentsLayer.remove();
+      window.segmentsLayer = L.layerGroup().addTo(map);
+
+      const depthColorsMap = ${depthColors};
+      function getDepthColors(depth) {
+        return depthColorsMap[(depth || "").toLowerCase()] || depthColorsMap.default;
+      }
+
+      const segments = ${JSON.stringify(segmentsRef.current)};
+      segments.forEach(function(segment) {
+        const polyline = L.polyline(segment.coords, {
+          color: 'red', weight: 4, opacity: 0.8, smoothFactor: 1
+        }).addTo(window.segmentsLayer);
+
+        const report = segment.floodReport;
+        if (!report) { polyline.bindPopup("No report available"); return; }
+
+        const streetName = report.streetName || "Unknown Street";
+        const titleSize = streetName.length > 10 ? "${s.titleSizes.small}" : streetName.length > 8 ? "${s.titleSizes.medium}" : "${s.titleSizes.large}";
+        const depthColor = getDepthColors(report.floodDepth);
+        const date = new Date(report.createdAt).toLocaleDateString("en-US", {
+          month: "long", day: "numeric", year: "numeric",
+          hour: "numeric", minute: "2-digit", hour12: true
         });
-      })();
-      true;
-    `);
+
+        const popup = \`
+          <div style="${s.container}">
+            <div style="${s.header}">
+              <span style="${s.titleBase} font-size:\${titleSize};">\${streetName}</span>
+              <span style="${s.badge} \${depthColor.badge} \${depthColor.text}">\${report.floodDepth || ""}</span>
+            </div>
+            \${report.description ? \`<span style="${s.description}">\${report.description}</span>\` : ""}
+            <p style="${s.date}">\${date}</p>
+          </div>
+        \`;
+
+        polyline.bindPopup(popup, { maxWidth: 300, className: "custom-popup" });
+      });
+    })();
+    true;
+  `);
   };
 
   //pinned locations
