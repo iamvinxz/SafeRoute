@@ -1,5 +1,5 @@
 import { authApi } from "@/redux/authService";
-import { GET_SEGMENTS } from "@/redux/Endpoint";
+import { GET_ALL_PINNED_LOCATIONS, GET_SEGMENTS } from "@/redux/Endpoint";
 
 const mapMarkersApi = authApi.injectEndpoints({
   endpoints: (build) => ({
@@ -8,7 +8,13 @@ const mapMarkersApi = authApi.injectEndpoints({
         url: GET_SEGMENTS,
       }),
     }),
+    getAllPinnedLocations: build.query({
+      query: () => ({
+        url: GET_ALL_PINNED_LOCATIONS,
+      }),
+    }),
   }),
 });
 
-export const { useGetAllSegmentsQuery } = mapMarkersApi;
+export const { useGetAllSegmentsQuery, useGetAllPinnedLocationsQuery } =
+  mapMarkersApi;
