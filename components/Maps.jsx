@@ -26,6 +26,7 @@ export default function Maps() {
   const injectPinnedLocationRef = useRef(null);
   const [zoomLevel, setZoomLevel] = useState(null);
 
+  //rtk query
   const { data: Tinajeros } = useGetTinajerosQuery();
   const { data: segmentsObj } = useGetAllSegmentsQuery();
   const { data: pinnnedLocations } = useGetAllPinnedLocationsQuery();
@@ -36,28 +37,37 @@ export default function Maps() {
 
   // geojson and landmarks
   injectLayersRef.current = () => {
-    const data = TinajerosRef.current;
-    if (!data || !webViewRef.current) return;
+    if (!TinajerosRef.current || !webViewRef.current) return;
 
     webViewRef.current.injectJavaScript(`
       (function() {
-        if (window.geojsonLayer) window.geojsonLayer.remove();
-        window.geojsonLayer = L.geoJSON(${JSON.stringify(data)}, {
-          style: {
-            color: 'blue',
-            weight: 1,
-            fillColor: "lightblue",
-            fillOpacity: 0.2
-          },
-          onEachFeature: function(feature, layer) {
-            if (feature.properties && feature.properties.adm4_en) {
-              layer.bindPopup(feature.properties.adm4_en);
+        if (window.geojsonLayer) {
+          window.geojsonLayer.clearLayers();
+          window.geojsonLayer.addData(${JSON.stringify(TinajerosRef.current)});
+        } else {
+          window.geojsonLayer = L.geoJSON(${JSON.stringify(TinajerosRef.current)}, {
+            style: {
+              color: 'blue',
+              weight: 1,
+              fillColor: "lightblue",
+              fillOpacity: 0.2
+            },
+            onEachFeature: function(feature, layer) {
+              if (feature.properties && feature.properties.adm4_en) {
+                layer.bindPopup(feature.properties.adm4_en);
+              }
             }
-          }
-        }).addTo(map);
-        map.fitBounds(window.geojsonLayer.getBounds());
+          }).addTo(map);
+        }
 
-        if (window.landmarkMarkers) window.landmarkMarkers.forEach(m => m.remove());
+        if (window.geojsonLayer.getBounds && window.geojsonLayer.getBounds().isValid()) {
+          map.fitBounds(window.geojsonLayer.getBounds());
+        }
+
+        if (!window.landmarkLayerGroup) {
+          window.landmarkLayerGroup = L.layerGroup().addTo(map);
+        }
+        window.landmarkLayerGroup.clearLayers();
         window.landmarkMarkers = [];
 
         const landmarks = ${JSON.stringify(landMarks)};
@@ -70,16 +80,19 @@ export default function Maps() {
             popupAnchor: [0, -40],
           });
           const marker = L.marker([lm.coordinates.lat, lm.coordinates.lng], { icon })
-            .addTo(map)
+            .addTo(window.landmarkLayerGroup)
             .bindPopup(lm.name);
           window.landmarkMarkers.push(marker);
         });
 
-        map.on('zoomend', function() {
-          window.ReactNativeWebView.postMessage(
-            JSON.stringify({ type: 'zoom', value: map.getZoom() })
-          );
-        });
+        if (!window.zoomEventAttached) {
+          map.on('zoomend', function() {
+            window.ReactNativeWebView.postMessage(
+              JSON.stringify({ type: 'zoom', value: map.getZoom() })
+            );
+          });
+          window.zoomEventAttached = true;
+        }
 
         window.ReactNativeWebView.postMessage(
           JSON.stringify({ type: 'zoom', value: map.getZoom() })
@@ -93,13 +106,16 @@ export default function Maps() {
   injectSegmentsRef.current = () => {
     if (!segmentsRef.current || !webViewRef.current) return;
 
-    const s = webViewStyles.segment;
-    const depthColors = JSON.stringify(s.depthColors);
+    const style = webViewStyles.segment;
+    const depthColors = JSON.stringify(style.depthColors);
 
     webViewRef.current.injectJavaScript(`
     (function() {
-      if (window.segmentsLayer) window.segmentsLayer.remove();
-      window.segmentsLayer = L.layerGroup().addTo(map);
+      if (!window.segmentsLayer) {
+        window.segmentsLayer = L.layerGroup().addTo(map);
+      } else {
+        window.segmentsLayer.clearLayers();
+      }
 
       const depthColorsMap = ${depthColors};
       function getDepthColors(depth) {
@@ -116,7 +132,7 @@ export default function Maps() {
         if (!report) { polyline.bindPopup("No report available"); return; }
 
         const streetName = report.streetName || "Unknown Street";
-        const titleSize = streetName.length > 10 ? "${s.titleSizes.small}" : streetName.length > 8 ? "${s.titleSizes.medium}" : "${s.titleSizes.large}";
+        const titleSize = streetName.length > 10 ? "${style.titleSizes.small}" : streetName.length > 8 ? "${style.titleSizes.medium}" : "${style.titleSizes.large}";
         const depthColor = getDepthColors(report.floodDepth);
         const date = new Date(report.createdAt).toLocaleDateString("en-US", {
           month: "long", day: "numeric", year: "numeric",
@@ -124,13 +140,13 @@ export default function Maps() {
         });
 
         const popup = \`
-          <div style="${s.container}">
-            <div style="${s.header}">
-              <span style="${s.titleBase} font-size:\${titleSize};">\${streetName}</span>
-              <span style="${s.badge} \${depthColor.badge} \${depthColor.text}">\${report.floodDepth || ""}</span>
+          <div style="${style.container}">
+            <div style="${style.header}">
+              <span style="${style.titleBase} font-size:\${titleSize};">\${streetName}</span>
+              <span style="${style.badge} \${depthColor.badge} \${depthColor.text}">\${report.floodDepth || ""}</span>
             </div>
-            \${report.description ? \`<span style="${s.description}">\${report.description}</span>\` : ""}
-            <p style="${s.date}">\${date}</p>
+            \${report.description ? \`<span style="${style.description}">\${report.description}</span>\` : ""}
+            <p style="${style.date}">\${date}</p>
           </div>
         \`;
 
@@ -152,8 +168,11 @@ export default function Maps() {
 
     webViewRef.current.injectJavaScript(`
     (function() {
-      if (window.pinLayer) window.pinLayer.clearLayers();
-      window.pinLayer = L.layerGroup().addTo(map);
+      if (!window.pinLayer) {
+        window.pinLayer = L.layerGroup().addTo(map);
+      } else {
+        window.pinLayer.clearLayers();
+      }
 
       const pins = ${JSON.stringify(pinnedLocationRef.current)};
       pins.forEach(function(pin) {
