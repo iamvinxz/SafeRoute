@@ -15,16 +15,17 @@ const primary = "#0c47ef";
 const secondary = "#8F8D8D";
 
 const icons = {
-  index: (color) => <Entypo name="home" size={22} color={color} />,
-  maps: (color) => <Entypo name="location" size={22} color={color} />,
-  menu: (color) => <Entypo name="menu" size={22} color={color} />,
+  "home/index": (color) => <Entypo name="home" size={22} color={color} />,
+  "maps/maps": (color) => <Entypo name="location" size={22} color={color} />,
+  "menu/menu": (color) => <Entypo name="menu" size={22} color={color} />,
 };
 
 const TabBar = ({ state, descriptors, navigation }) => {
   const insets = useSafeAreaInsets();
   const filteredRoutes = state.routes.filter((r) => icons[r.name]);
-  const selectedIndex = filteredRoutes.findIndex(
-    (r) => r.key === state.routes[state.index]?.key,
+  const selectedIndex = Math.max(
+    0,
+    filteredRoutes.findIndex((r) => r.key === state.routes[state.index]?.key),
   );
 
   const totalHeight = TAB_BAR_HEIGHT + HUMP_HEIGHT + insets.bottom;
