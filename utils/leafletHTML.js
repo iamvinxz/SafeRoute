@@ -16,6 +16,18 @@ const getLeafletHTML = () => `
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #map { width: 100%; height: 100%; }
+
+    .leaflet-div-icon {
+          background: none;
+          border: none;
+        }
+        .custom-popup .leaflet-popup-content-wrapper {
+          border-radius: 7px;
+          padding: 5;
+        }
+        .custom-popup .leaflet-popup-content {
+          margin: 12px 15px;
+        }
   </style>
 </head>
 <body>
