@@ -1,6 +1,9 @@
 import Flyto from "@/components/FlyTo";
 import { useGetTinajerosQuery } from "@/redux/GeoJsonService";
-import { useGetAllSegmentsQuery } from "@/redux/mapMarkers";
+import {
+  useGetAllPinnedLocationsQuery,
+  useGetAllSegmentsQuery,
+} from "@/redux/mapMarkers";
 import { landMarks } from "@/utils/landMark";
 import getLeafletHTML from "@/utils/leafletHTML";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -15,17 +18,23 @@ export default function Maps() {
   const mapReadyRef = useRef(false);
   const TinajerosRef = useRef(null);
   const segmentsRef = useRef(null);
+  const pinnedLocationRef = useRef(null);
   const injectLayersRef = useRef(null);
   const injectSegmentsRef = useRef(null);
+  const injectPinnedLocationRef = useRef(null);
   const [zoomLevel, setZoomLevel] = useState(null);
 
   const { data: Tinajeros } = useGetTinajerosQuery();
   const { data: segmentsObj } = useGetAllSegmentsQuery();
+  const { data: pinnnedLocations } = useGetAllPinnedLocationsQuery();
+
+  console.log("pinned here", pinnnedLocations?.pins[1].coords[1]);
 
   TinajerosRef.current = Tinajeros;
   segmentsRef.current = segmentsObj?.segments;
+  pinnedLocationRef.current = pinnnedLocations?.pins;
 
-  // Always up-to-date function, re-assigned every render
+  // geojson and landmarks
   injectLayersRef.current = () => {
     const data = TinajerosRef.current;
     if (!data || !webViewRef.current) return;
@@ -80,7 +89,7 @@ export default function Maps() {
     `);
   };
 
-  // Always up-to-date function, re-assigned every render
+  // segments
   injectSegmentsRef.current = () => {
     if (!segmentsRef.current || !webViewRef.current) return;
 
@@ -103,6 +112,28 @@ export default function Maps() {
       true;
     `);
   };
+
+  //pinned locations
+  injectPinnedLocationRef.current = () => {
+    if (!pinnedLocationRef.current || !webViewRef.current) return;
+
+    webViewRef.current.injectJavaScript(`
+      (function() {
+        window.pinLayer = L.layerGroup().addTo(map);
+        const pins = ${JSON.stringify(pinnedLocationRef.current)};
+        pins.forEach(function(pins) {
+          const marker = L.marker([pin.coords[0], pin.coords[1]]).addTo(window.pinLayer);
+          marker.bindPopup(pin.pinName || "Pinned Location");
+        });
+      })()
+    `);
+  };
+
+  useEffect(() => {
+    if (mapReadyRef.current && pinnnedLocations?.pins) {
+      injectPinnedLocationRef.current?.();
+    }
+  }, [pinnnedLocations]);
 
   // Inject segments when data arrives and map is ready
   useEffect(() => {
