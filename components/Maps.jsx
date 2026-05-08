@@ -6,6 +6,8 @@ import {
 } from "@/redux/mapMarkers";
 import { landMarks } from "@/utils/landMark";
 import getLeafletHTML from "@/utils/leafletHTML";
+import { pinIcon } from "@/utils/svgIcons";
+import { webViewStyles } from "@/utils/webViewStyles";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
@@ -27,8 +29,6 @@ export default function Maps() {
   const { data: Tinajeros } = useGetTinajerosQuery();
   const { data: segmentsObj } = useGetAllSegmentsQuery();
   const { data: pinnnedLocations } = useGetAllPinnedLocationsQuery();
-
-  console.log("pinned here", pinnnedLocations?.pins[1].coords[1]);
 
   TinajerosRef.current = Tinajeros;
   segmentsRef.current = segmentsObj?.segments;
@@ -117,16 +117,56 @@ export default function Maps() {
   injectPinnedLocationRef.current = () => {
     if (!pinnedLocationRef.current || !webViewRef.current) return;
 
+    const containerStyle = webViewStyles.popup.container;
+    const descriptionStyle = webViewStyles.popup.description;
+    const dateStyle = webViewStyles.popup.date;
+    const columnStyle = webViewStyles.popup.column;
+
     webViewRef.current.injectJavaScript(`
-      (function() {
-        window.pinLayer = L.layerGroup().addTo(map);
-        const pins = ${JSON.stringify(pinnedLocationRef.current)};
-        pins.forEach(function(pins) {
-          const marker = L.marker([pin.coords[0], pin.coords[1]]).addTo(window.pinLayer);
-          marker.bindPopup(pin.pinName || "Pinned Location");
+    (function() {
+      if (window.pinLayer) window.pinLayer.clearLayers();
+      window.pinLayer = L.layerGroup().addTo(map);
+
+      const pins = ${JSON.stringify(pinnedLocationRef.current)};
+      pins.forEach(function(pin) {
+
+        // pin icon
+        const pinMarker = L.divIcon({
+          html: '${pinIcon.replace(/'/g, "\\'")}',
+          className: "",
+          iconSize: [22, 22],
+          iconAnchor: [12, 20],
+          popupAnchor: [0, -32]
         });
-      })()
-    `);
+
+        const titleSize = pin.pinName.length > 20 ? "13px" : pin.pinName.length > 12 ? "15px" : "13px";
+
+        const titleStyle = "font-weight:600; color:#303030; line-height:0.8; word-break:break-word; display:block; text-transform: capitalize; margin-bottom:2px; font-size:" + titleSize;
+
+        const date = new Date(pin.createdAt).toLocaleDateString("en-US", {
+          month: "long", day: "numeric", year: "numeric",
+          hour: "numeric", minute: "2-digit", hour12: true
+        });
+
+        // pin popup
+        const popup = \`
+          <div style="${containerStyle}">
+            <span style="\${titleStyle}">\${pin.pinName}</span>
+            <div style="${columnStyle}">
+              <span style="${descriptionStyle}">\${pin.description || ""}</span>
+              <span style="${dateStyle}">\${date}</span>
+            </div>
+          </div>
+        \`;
+
+        const marker = L.marker([pin.coords[0], pin.coords[1]], { icon: pinMarker }).addTo(window.pinLayer);
+        marker.bindPopup(popup, {
+          maxWidth: 180,
+          className: "custom-popup"
+        });
+      });
+    })()
+  `);
   };
 
   useEffect(() => {
@@ -177,6 +217,7 @@ export default function Maps() {
           mapReadyRef.current = true;
           if (TinajerosRef.current) injectLayersRef.current?.();
           if (segmentsRef.current) injectSegmentsRef.current?.();
+          if (pinnedLocationRef.current) injectPinnedLocationRef.current?.();
         }}
       />
     ),
