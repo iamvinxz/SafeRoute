@@ -65,9 +65,9 @@ const Login = () => {
             <View style={style.card}>
               {/* PHone */}
               <View className="mb-4">
-                <Text style={style.label}>Email</Text>
+                <Text style={style.label}>Phone</Text>
                 <View style={style.inputWrapper}>
-                  <Feather name="mail" size={16} color="#6b6b6b" />
+                  <Feather name="phone" size={16} color="#6b6b6b" />
                   <TextInput
                     placeholder="Enter your phone number"
                     placeholderTextColor="#9a9a9a"
