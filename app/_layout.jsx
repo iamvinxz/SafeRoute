@@ -1,15 +1,16 @@
-import TabBar from "@/components/TabBar";
 import "@/global.css";
+import { store } from "@/store.js";
 import { useFonts } from "expo-font";
-import { Tabs } from "expo-router";
+import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { Provider } from "react-redux";
 
-const _layout = () => {
+const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
-    Montserrat: require("../assets/fonts/Montserrat-Medium.ttf"),
-    "Montserrat-Bold": require("../assets/fonts/Montserrat-Bold.ttf"),
+    Montserrat: require("@/assets/fonts/Montserrat-Medium.ttf"),
+    "Montserrat-Bold": require("@/assets/fonts/Montserrat-Bold.ttf"),
   });
 
   React.useEffect(() => {
@@ -21,34 +22,14 @@ const _layout = () => {
   if (!fontsLoaded && !fontError) {
     return null;
   }
+
   return (
-    <SafeAreaProvider>
-      <Tabs
-        tabBar={(props) => <TabBar {...props} />}
-        screenOptions={{
-          tabBarStyle: {
-            backgroundColor: "transparent",
-            borderTopWidth: 0,
-            elevation: 0,
-            position: "absolute",
-          },
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{ title: "Home", headerShown: false }}
-        />
-        <Tabs.Screen
-          name="maps"
-          options={{ title: "Maps", headerShown: false }}
-        />
-        <Tabs.Screen
-          name="menu"
-          options={{ title: "Menu", headerShown: false }}
-        />
-      </Tabs>
-    </SafeAreaProvider>
+    <Provider store={store}>
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    </Provider>
   );
 };
 
-export default _layout;
+export default RootLayout;
