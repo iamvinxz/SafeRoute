@@ -4,7 +4,7 @@
     "slug": "SAFEROUTE",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/icon.png",
     "scheme": "saferoute",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -41,7 +41,8 @@
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
