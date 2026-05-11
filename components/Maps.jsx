@@ -4,18 +4,22 @@ import {
   useGetAllPinnedLocationsQuery,
   useGetAllSegmentsQuery,
 } from "@/redux/mapMarkers";
+import { isOpen } from "@/states/modalSlice";
 import { landMarks } from "@/utils/landMark";
 import getLeafletHTML from "@/utils/leafletHTML";
 import { pinIcon } from "@/utils/svgIcons";
 import { webViewStyles } from "@/utils/webViewStyles";
+import { LayersPlus } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { WebView } from "react-native-webview";
+import { useDispatch } from "react-redux";
 
 const leafletHTML = getLeafletHTML();
 
 export default function Maps() {
+  const dispatch = useDispatch();
   const webViewRef = useRef(null);
   const mapReadyRef = useRef(false);
   const TinajerosRef = useRef(null);
@@ -293,6 +297,13 @@ export default function Maps() {
           </TouchableOpacity>
         ))}
       </View>
+
+      <TouchableOpacity
+        style={styles.floodReportOverlay}
+        onPress={() => dispatch(isOpen())}
+      >
+        <LayersPlus size={16} color="#303030" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -341,5 +352,20 @@ const styles = StyleSheet.create({
   zoomText: {
     fontSize: 12,
     fontFamily: "Montserrat",
+  },
+  floodReportOverlay: {
+    position: "absolute",
+    bottom: 30,
+    left: 20,
+    right: 20,
+    zIndex: 1000,
+    backgroundColor: "white",
+    width: 40,
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 5,
+    borderRadius: "100%",
+    borderWidth: 1,
   },
 });
