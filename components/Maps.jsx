@@ -274,10 +274,6 @@ export default function Maps() {
     <View style={styles.container}>
       {webView}
 
-      <View style={styles.zoomIndicator}>
-        <Text style={styles.zoomText}>Zoom: {zoomLevel ?? "-"}</Text>
-      </View>
-
       <View style={styles.mapHeader}>
         {landMarks.map((tab, index) => (
           <TouchableOpacity
