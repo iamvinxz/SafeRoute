@@ -52,11 +52,6 @@ export default function Maps() {
               fillColor: "lightblue",
               fillOpacity: 0.2
             },
-            onEachFeature: function(feature, layer) {
-              if (feature.properties && feature.properties.adm4_en) {
-                layer.bindPopup(feature.properties.adm4_en);
-              }
-            }
           }).addTo(map);
         }
 
