@@ -1,10 +1,30 @@
+import { useCreateFloodReportMutation } from "@/redux/floodReport";
+import {
+  resetReport,
+  setCoords,
+  setDescription,
+  setFloodDepth,
+  setPhotoUrl,
+  setStreetName,
+} from "@/states/floodReportSlice";
 import { isOpen } from "@/states/modalSlice";
+import { streets } from "@/utils/streets";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Camera, Check, LucideX, RotateCcw } from "lucide-react-native";
+import * as Location from "expo-location";
+import {
+  Camera,
+  Check,
+  ChevronDown,
+  LucideX,
+  MapPin,
+  RotateCcw,
+} from "lucide-react-native";
 import { useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -13,25 +33,35 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
-const DEPTH_OPTIONS = ["< 0.3m", "0.3m – 0.6m", "0.6m – 1m", "> 1m"];
+const DEPTH_OPTIONS = ["Ankle-Deep", "Knee-Deep", "Chest-Deep", "Critical"];
 
 const CreateFloodReport = () => {
   const dispatch = useDispatch();
   const cameraRef = useRef(null);
-
   const [permission, requestPermission] = useCameraPermissions();
   const [showCamera, setShowCamera] = useState(false);
-  const [photo, setPhoto] = useState(null);
-  const [street, setStreet] = useState("");
-  const [depth, setDepth] = useState(null);
-  const [description, setDescription] = useState("");
+  const [depthOpen, setDepthOpen] = useState(false);
+  const [streetOpen, setStreetOpen] = useState(false);
+  const [streetSearch, setStreetSearch] = useState("");
+  const [locating, setLocating] = useState(false);
+
+  //rtk query
+  const [createReport] = useCreateFloodReportMutation();
+
+  const { streetName, floodDepth, photoUrl, description, coords } = useSelector(
+    (state) => state.report,
+  );
+
+  const filteredStreets = streets.filter((s) =>
+    s.name.toLowerCase().includes(streetSearch.toLowerCase()),
+  );
 
   const takePhoto = async () => {
     if (!cameraRef.current) return;
     const result = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-    setPhoto(result.uri);
+    dispatch(setPhotoUrl(result.uri));
     setShowCamera(false);
   };
 
@@ -42,9 +72,63 @@ const CreateFloodReport = () => {
     setShowCamera(true);
   };
 
-  const handleSubmit = () => {
-    // TODO: dispatch your flood report action
-    console.log({ photo, street, depth, description });
+  const autofillLocation = async () => {
+    setLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("Location permission denied");
+        return;
+      }
+
+      const current = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      dispatch(
+        setCoords({
+          latitude: current.coords.latitude,
+          longitude: current.coords.longitude,
+        }),
+      );
+
+      const [address] = await Location.reverseGeocodeAsync(current.coords);
+
+      // Try to match against streets list
+      const matched = streets.find((s) =>
+        s.name.toLowerCase().includes(address.street?.toLowerCase() ?? ""),
+      );
+
+      dispatch(
+        setStreetName(
+          matched ? matched.name : (address.street ?? "Unknown street"),
+        ),
+      );
+    } catch (e) {
+      console.error("Location error:", e);
+    } finally {
+      setLocating(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    await createReport({
+      streetName,
+      floodDepth,
+      description,
+      photoUrl,
+      coords,
+    });
+
+    console.log({
+      photoUrl,
+      streetName,
+      floodDepth,
+      description,
+      coords,
+    });
+    console.log("report created successfully");
+    dispatch(resetReport());
     dispatch(isOpen());
   };
 
@@ -55,17 +139,18 @@ const CreateFloodReport = () => {
           ref={cameraRef}
           style={StyleSheet.absoluteFill}
           facing="back"
+        />
+
+        <TouchableOpacity
+          style={style.cameraClose}
+          onPress={() => setShowCamera(false)}
         >
-          <View style={style.cameraUI}>
-            <TouchableOpacity
-              style={style.cameraClose}
-              onPress={() => setShowCamera(false)}
-            >
-              <LucideX size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={style.shutterBtn} onPress={takePhoto} />
-          </View>
-        </CameraView>
+          <LucideX size={20} color="#fff" />
+        </TouchableOpacity>
+
+        <View style={style.cameraUI}>
+          <TouchableOpacity style={style.shutterBtn} onPress={takePhoto} />
+        </View>
       </View>
     );
   }
@@ -99,12 +184,15 @@ const CreateFloodReport = () => {
                 style={style.photoBox}
                 onPress={handleCameraPress}
               >
-                {photo ? (
+                {photoUrl ? (
                   <>
-                    <Image source={{ uri: photo }} style={style.photoPreview} />
+                    <Image
+                      source={{ uri: photoUrl }}
+                      style={style.photoPreview}
+                    />
                     <TouchableOpacity
                       style={style.retakeBtn}
-                      onPress={() => setPhoto(null)}
+                      onPress={() => dispatch(setPhotoUrl(null))}
                     >
                       <RotateCcw size={14} color="#fff" />
                       <Text style={style.retakeText}>Retake</Text>
@@ -121,40 +209,153 @@ const CreateFloodReport = () => {
 
             {/* Street Name */}
             <View style={style.field}>
-              <Text style={style.label}>Street name</Text>
-              <TextInput
-                style={style.input}
-                placeholder="e.g. Rizal Avenue, Quezon City"
-                placeholderTextColor="#bbb"
-                value={street}
-                onChangeText={setStreet}
-              />
+              <View style={style.labelRow}>
+                <Text style={style.label}>Street name</Text>
+                <TouchableOpacity
+                  style={style.locationBtn}
+                  onPress={autofillLocation}
+                  disabled={locating}
+                >
+                  {locating ? (
+                    <ActivityIndicator size={12} color="#1d4ed8" />
+                  ) : (
+                    <MapPin size={13} color="#1d4ed8" />
+                  )}
+                  <Text style={style.locationBtnText}>
+                    {locating ? "Locating..." : "Use my location"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity
+                style={style.dropdown}
+                onPress={() => setStreetOpen(true)}
+              >
+                <Text
+                  style={
+                    streetName
+                      ? style.dropdownSelected
+                      : style.dropdownPlaceholder
+                  }
+                >
+                  {streetName || "Select a street"}
+                </Text>
+                <ChevronDown size={16} color="#888" />
+              </TouchableOpacity>
+
+              <Modal
+                visible={streetOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => {
+                  setStreetOpen(false);
+                  setStreetSearch("");
+                }}
+              >
+                <TouchableOpacity
+                  style={style.modalBackdrop}
+                  activeOpacity={1}
+                  onPress={() => {
+                    setStreetOpen(false);
+                    setStreetSearch("");
+                  }}
+                >
+                  <View
+                    style={style.dropdownMenu}
+                    onStartShouldSetResponder={() => true}
+                  >
+                    <View style={style.searchBox}>
+                      <TextInput
+                        style={style.searchInput}
+                        placeholder="Search street..."
+                        placeholderTextColor="#bbb"
+                        value={streetSearch}
+                        onChangeText={setStreetSearch}
+                        autoFocus
+                      />
+                    </View>
+
+                    <ScrollView
+                      style={{ maxHeight: 280 }}
+                      keyboardShouldPersistTaps="handled"
+                    >
+                      {filteredStreets.length === 0 ? (
+                        <Text style={style.noResult}>No streets found</Text>
+                      ) : (
+                        // ✅ Fix 2: renamed param to `s`, and fixed check mark condition
+                        filteredStreets.map((s) => (
+                          <TouchableOpacity
+                            key={s.name}
+                            style={style.dropdownItem}
+                            onPress={() => {
+                              dispatch(setStreetName(s.name));
+                              setStreetOpen(false);
+                              setStreetSearch("");
+                            }}
+                          >
+                            <Text style={style.dropdownItemText}>{s.name}</Text>
+                            {streetName === s.name && (
+                              <Check size={16} color="#1d4ed8" />
+                            )}
+                          </TouchableOpacity>
+                        ))
+                      )}
+                    </ScrollView>
+                  </View>
+                </TouchableOpacity>
+              </Modal>
             </View>
 
             {/* Flood Depth */}
             <View style={style.field}>
               <Text style={style.label}>Flood depth</Text>
-              <View style={style.depthGrid}>
-                {DEPTH_OPTIONS.map((opt) => (
-                  <TouchableOpacity
-                    key={opt}
-                    style={[
-                      style.depthChip,
-                      depth === opt && style.depthChipActive,
-                    ]}
-                    onPress={() => setDepth(opt)}
-                  >
-                    <Text
-                      style={[
-                        style.depthChipText,
-                        depth === opt && style.depthChipTextActive,
-                      ]}
-                    >
-                      {opt}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+
+              <TouchableOpacity
+                style={style.dropdown}
+                onPress={() => setDepthOpen(true)}
+              >
+                <Text
+                  style={
+                    floodDepth
+                      ? style.dropdownSelected
+                      : style.dropdownPlaceholder
+                  }
+                >
+                  {floodDepth ?? "Select flood depth"}
+                </Text>
+                <ChevronDown size={16} color="#888" />
+              </TouchableOpacity>
+
+              <Modal
+                visible={depthOpen}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setDepthOpen(false)}
+              >
+                <TouchableOpacity
+                  style={style.modalBackdrop}
+                  activeOpacity={1}
+                  onPress={() => setDepthOpen(false)}
+                >
+                  <View style={style.dropdownMenu}>
+                    {DEPTH_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt}
+                        style={style.dropdownItem}
+                        onPress={() => {
+                          dispatch(setFloodDepth(opt));
+                          setDepthOpen(false);
+                        }}
+                      >
+                        <Text style={style.dropdownItemText}>{opt}</Text>
+                        {floodDepth === opt && (
+                          <Check size={16} color="#1d4ed8" />
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </TouchableOpacity>
+              </Modal>
             </View>
 
             {/* Description */}
@@ -165,7 +366,7 @@ const CreateFloodReport = () => {
                 placeholder="Describe the flood situation..."
                 placeholderTextColor="#bbb"
                 value={description}
-                onChangeText={setDescription}
+                onChangeText={(text) => dispatch(setDescription(text))}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -199,9 +400,10 @@ const style = StyleSheet.create({
   },
   container: {
     backgroundColor: "#fff",
-    flex: 1,
     borderRadius: 14,
     overflow: "hidden",
+    position: "relative",
+    top: 30,
   },
   header: {
     flexDirection: "row",
@@ -227,12 +429,27 @@ const style = StyleSheet.create({
   field: {
     gap: 8,
   },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   label: {
     fontSize: 13,
     fontWeight: "600",
     color: "#444",
     textTransform: "uppercase",
     letterSpacing: 0.5,
+  },
+  locationBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  locationBtnText: {
+    fontSize: 12,
+    color: "#1d4ed8",
+    fontWeight: "600",
   },
   input: {
     borderWidth: 1,
@@ -287,30 +504,50 @@ const style = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
   },
-  depthGrid: {
+  dropdown: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  depthChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "space-between",
     borderWidth: 1,
     borderColor: "#e0e0e0",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     backgroundColor: "#fafafa",
   },
-  depthChipActive: {
-    backgroundColor: "#1d4ed8",
-    borderColor: "#1d4ed8",
+  dropdownPlaceholder: {
+    fontSize: 14,
+    color: "#bbb",
   },
-  depthChipText: {
-    fontSize: 13,
-    color: "#555",
+  dropdownSelected: {
+    fontSize: 14,
+    color: "#1a1a1a",
   },
-  depthChipTextActive: {
-    color: "#fff",
-    fontWeight: "600",
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "center",
+    paddingHorizontal: 40,
+  },
+  dropdownMenu: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+  },
+  dropdownItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#1a1a1a",
   },
   submitBtn: {
     backgroundColor: "#1d4ed8",
@@ -328,10 +565,11 @@ const style = StyleSheet.create({
     fontSize: 15,
   },
   cameraUI: {
-    flex: 1,
-    justifyContent: "flex-end",
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
     alignItems: "center",
-    paddingBottom: 40,
   },
   cameraClose: {
     position: "absolute",
@@ -340,6 +578,7 @@ const style = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.4)",
     borderRadius: 20,
     padding: 8,
+    zIndex: 10,
   },
   shutterBtn: {
     width: 68,
@@ -348,5 +587,24 @@ const style = StyleSheet.create({
     backgroundColor: "#fff",
     borderWidth: 4,
     borderColor: "rgba(255,255,255,0.5)",
+  },
+  searchBox: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  searchInput: {
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: "#1a1a1a",
+  },
+  noResult: {
+    textAlign: "center",
+    color: "#aaa",
+    fontSize: 13,
+    paddingVertical: 20,
   },
 });
