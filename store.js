@@ -1,6 +1,7 @@
 import { api } from "@/redux/APIService";
 import { GeoJsonApi } from "@/redux/GeoJsonService";
 import authReducer from "@/states/authSlice";
+import floodReportReducer from "@/states/floodReportSlice";
 import modalReducer from "@/states/modalSlice";
 import { configureStore } from "@reduxjs/toolkit";
 
@@ -10,6 +11,7 @@ export const store = configureStore({
     [api.reducerPath]: api.reducer,
     auth: authReducer,
     modal: modalReducer,
+    report: floodReportReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })
