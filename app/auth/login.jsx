@@ -106,7 +106,11 @@ const Login = () => {
               </View>
 
               {/* Sign In Button */}
-              <TouchableOpacity style={style.button} onPress={handleLogin}>
+              <TouchableOpacity
+                style={style.button}
+                onPress={handleLogin}
+                disabled={isLoggingIn}
+              >
                 {isLoggingIn ? (
                   <ActivityIndicator color="white" />
                 ) : (
