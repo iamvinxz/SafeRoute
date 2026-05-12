@@ -5,4 +5,4 @@ export const GET_TINAJEROS =
 export const GET_SEGMENTS = "/api/mark/segment/all";
 export const LOGIN = "/api/auth/login";
 export const GET_ALL_PINNED_LOCATIONS = "/api/mark/pin/all";
-export const CREATE_FLOOD_REPORT = "api/floods/report";
+export const CREATE_FLOOD_REPORT = "/api/floods/report";
