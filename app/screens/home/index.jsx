@@ -1,3 +1,4 @@
+import NotificationComponent from "@/components/NotificationComponent";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
@@ -38,7 +39,7 @@ const Home = () => {
 
           <TouchableOpacity
             className="mr-1"
-            onPress={() => console.log("bell pressed")}
+            onPress={() => setViewNotification((notif) => !notif)}
           >
             <View className="relative">
               <Ionicons name="notifications-outline" size={24} color="black" />
