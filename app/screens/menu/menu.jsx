@@ -1,8 +1,10 @@
-import { logout } from "@/states/authSlice";
+import { api } from "@/redux/APIService";
+import { useLogoutMutation } from "@/redux/authService";
+import { clearCredentials } from "@/states/authSlice";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const data = [
   {
@@ -33,6 +35,19 @@ const data = [
 
 const Menu = () => {
   const dispatch = useDispatch();
+  const { token, isAuthenticated } = useSelector((state) => state.auth);
+
+  const [logout] = useLogoutMutation();
+
+  const handleLogout = async () => {
+    try {
+      await logout().unwrap();
+      dispatch(api.util.resetApiState()); //clear cache
+      dispatch(clearCredentials());
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <SafeAreaView className="px-4 py-2">
@@ -85,7 +100,7 @@ const Menu = () => {
       </View>
       <TouchableOpacity
         className="flex flex-row items-center mt-6 justify-center"
-        onPress={() => dispatch(logout())}
+        onPress={handleLogout}
       >
         <View
           style={style.logout}
