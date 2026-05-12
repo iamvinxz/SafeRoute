@@ -8,9 +8,11 @@ const reportApi = api.injectEndpoints({
         url: CREATE_FLOOD_REPORT,
         method: "POST",
         body: payload,
+        formData: true,
       }),
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useCreateFloodReportMutation } = reportApi;
