@@ -2,6 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.EXPO_PUBLIC_SAFEROUTE_API_URI,
+  credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
     console.log(token);
