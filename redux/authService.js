@@ -1,5 +1,5 @@
 import { api } from "@/redux/APIService";
-import { LOGIN, REGISTER } from "@/redux/Endpoint";
+import { LOGIN, LOGOUT, REGISTER } from "@/redux/Endpoint";
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -11,7 +11,7 @@ export const authApi = api.injectEndpoints({
       }),
     }),
     logout: build.mutation({
-      query: (payload) => ({
+      query: () => ({
         url: LOGOUT,
         method: "POST",
       }),
@@ -24,6 +24,7 @@ export const authApi = api.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useLoginMutation, useLogoutMutation, useRegisterMutation } =
