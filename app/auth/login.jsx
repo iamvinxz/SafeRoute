@@ -33,7 +33,6 @@ const Login = () => {
         phone,
         password,
       }).unwrap();
-      console.log("Login response:", response);
 
       dispatch(login({ token: response.token }));
     } catch (error) {
