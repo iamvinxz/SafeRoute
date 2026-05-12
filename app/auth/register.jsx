@@ -1,3 +1,4 @@
+import { useRegisterMutation } from "@/redux/authService";
 import {
   clearRegister,
   setAge,
@@ -32,6 +33,23 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const [register] = useRegisterMutation();
+
+  const handleRegister = async () => {
+    try {
+      await register({
+        age,
+        phone,
+        password,
+        isPwd,
+      }).unwrap();
+
+      console.log("Registered successfuly");
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <LinearGradient
       className="w-full h-full"
@@ -168,14 +186,20 @@ const Register = () => {
 
               {/* Button */}
               <View style={style.buttonCtn}>
-                <TouchableOpacity style={style.button} activeOpacity={0.85}>
+                <TouchableOpacity
+                  style={style.button}
+                  activeOpacity={0.85}
+                  onPress={handleRegister}
+                >
                   <Text style={style.buttonText}>Create account</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={style.clearBtn}
                   onPress={() => dispatch(clearRegister())}
                 >
-                  <Text style={style.clearBtnText}>Clear </Text>
+                  <Text style={style.clearBtnText} activeOpacity={0.85}>
+                    Clear
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
