@@ -48,7 +48,8 @@ const CreateFloodReport = () => {
   const [locating, setLocating] = useState(false);
 
   //rtk query
-  const [createReport] = useCreateFloodReportMutation();
+  const [createReport, { isLoading: creatingReport }] =
+    useCreateFloodReportMutation();
 
   const { streetName, floodDepth, photoUrl, description, coords } = useSelector(
     (state) => state.report,
@@ -85,12 +86,7 @@ const CreateFloodReport = () => {
         accuracy: Location.Accuracy.High,
       });
 
-      dispatch(
-        setCoords({
-          latitude: current.coords.latitude,
-          longitude: current.coords.longitude,
-        }),
-      );
+      dispatch(setCoords([current.coords.latitude, current.coords.longitude]));
 
       const [address] = await Location.reverseGeocodeAsync(current.coords);
 
@@ -112,24 +108,27 @@ const CreateFloodReport = () => {
   };
 
   const handleSubmit = async () => {
-    await createReport({
-      streetName,
-      floodDepth,
-      description,
-      photoUrl,
-      coords,
-    });
+    try {
+      const formData = new FormData();
 
-    console.log({
-      photoUrl,
-      streetName,
-      floodDepth,
-      description,
-      coords,
-    });
-    console.log("report created successfully");
-    dispatch(resetReport());
-    dispatch(isOpen());
+      formData.append("streetName", streetName);
+      formData.append("floodDepth", floodDepth.toLowerCase());
+      formData.append("description", description);
+      formData.append("latitude", coords[0]);
+      formData.append("longitude", coords[1]);
+      formData.append("image", {
+        uri: photoUrl,
+        name: photoUrl.split("/").pop(),
+        type: "image/jpg",
+      });
+
+      const result = await createReport(formData).unwrap();
+
+      dispatch(resetReport());
+      dispatch(isOpen());
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   if (showCamera) {
@@ -375,8 +374,14 @@ const CreateFloodReport = () => {
 
             {/* Submit */}
             <TouchableOpacity style={style.submitBtn} onPress={handleSubmit}>
-              <Check size={16} color="#fff" />
-              <Text style={style.submitText}>Submit Report</Text>
+              {creatingReport ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <View style={style.submit}>
+                  <Check size={16} color="#fff" />
+                  <Text style={style.submitText}>Submit Report</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -549,6 +554,12 @@ const style = StyleSheet.create({
     fontSize: 14,
     color: "#1a1a1a",
   },
+  submit: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 1,
+  },
   submitBtn: {
     backgroundColor: "#1d4ed8",
     borderRadius: 10,
@@ -556,8 +567,6 @@ const style = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    marginTop: 4,
   },
   submitText: {
     color: "#fff",
