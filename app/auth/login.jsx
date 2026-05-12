@@ -24,7 +24,7 @@ const Login = () => {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const { isAuthenticated, token } = useSelector((state) => state.auth);
+  const { isAuthenticated, token, error } = useSelector((state) => state.auth);
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
 
   const handleLogin = async () => {
@@ -36,8 +36,7 @@ const Login = () => {
 
       dispatch(login({ token: response.token }));
     } catch (error) {
-      console.error("Login error:", error);
-      dispatch(loginFailure(error.message));
+      dispatch(loginFailure(error.data.message));
     }
   };
 
@@ -104,6 +103,12 @@ const Login = () => {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {error && (
+                <View style={style.error}>
+                  <Text style={style.textError}>{error}</Text>
+                </View>
+              )}
 
               {/* Sign In Button */}
               <TouchableOpacity
@@ -199,6 +204,16 @@ const style = StyleSheet.create({
   linkText: {
     fontSize: 14,
     color: "#666",
+  },
+  error: {
+    position: "relative",
+    top: -8,
+    left: 5,
+  },
+  textError: {
+    color: "red",
+    fontSize: 12,
+    fontFamily: "Montserrat",
   },
 });
 
