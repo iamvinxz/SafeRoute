@@ -1,5 +1,5 @@
 import { api } from "@/redux/APIService";
-import { LOGIN } from "@/redux/Endpoint";
+import { LOGIN, REGISTER } from "@/redux/Endpoint";
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -16,7 +16,15 @@ export const authApi = api.injectEndpoints({
         method: "POST",
       }),
     }),
+    register: build.mutation({
+      query: (payload) => ({
+        url: REGISTER,
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation } = authApi;
+export const { useLoginMutation, useLogoutMutation, useRegisterMutation } =
+  authApi;
