@@ -19,9 +19,10 @@ import {
   MapPin,
   RotateCcw,
 } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -72,6 +73,36 @@ const CreateFloodReport = () => {
     }
     setShowCamera(true);
   };
+
+  useEffect(() => {
+    const getCoords = async () => {
+      setLocating(true);
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Location required",
+            "Please enable location permission to submit a flood report",
+          );
+          return;
+        }
+
+        const current = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+
+        dispatch(
+          setCoords([current.coords.latitude, current.coords.longitude]),
+        );
+      } catch (error) {
+        Alert.alert("Something went wrong", "Please try again");
+      } finally {
+        setLocating(false);
+      }
+    };
+
+    getCoords();
+  }, []);
 
   const autofillLocation = async () => {
     setLocating(true);
@@ -165,7 +196,10 @@ const CreateFloodReport = () => {
           <View style={style.header}>
             <Text style={style.title}>Create Flood Report</Text>
             <TouchableOpacity
-              onPress={() => dispatch(isOpen())}
+              onPress={() => {
+                dispatch(isOpen());
+                dispatch(resetReport());
+              }}
               style={style.closeBtn}
             >
               <LucideX size={18} color="#555" />
@@ -320,7 +354,7 @@ const CreateFloodReport = () => {
                       : style.dropdownPlaceholder
                   }
                 >
-                  {floodDepth ?? "Select flood depth"}
+                  {floodDepth || "Select flood depth"}
                 </Text>
                 <ChevronDown size={16} color="#888" />
               </TouchableOpacity>
