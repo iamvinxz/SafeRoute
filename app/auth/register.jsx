@@ -1,3 +1,10 @@
+import {
+  clearRegister,
+  setAge,
+  setIsPwd,
+  setPassword,
+  setPhone,
+} from "@/states/registerSlice";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -13,16 +20,18 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch, useSelector } from "react-redux";
 
 const Register = () => {
   const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const { age, phone, password, isPwd } = useSelector(
+    (state) => state.register,
+  );
+
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
   return (
     <LinearGradient
       className="w-full h-full"
@@ -44,35 +53,35 @@ const Register = () => {
 
             {/* Card */}
             <View style={style.card}>
-              {/* Full name */}
+              {/* Age */}
               <View className="mb-4">
-                <Text style={style.label}>Full name</Text>
+                <Text style={style.label}>Age</Text>
                 <View style={style.inputWrapper}>
                   <Feather name="user" size={16} color="#6b6b6b" />
                   <TextInput
-                    placeholder="Juan dela Cruz"
+                    placeholder="Enter your age"
                     placeholderTextColor="#9a9a9a"
                     style={style.input}
-                    autoCapitalize="words"
-                    value={fullName}
-                    onChangeText={setFullName}
+                    keyboardType="numeric"
+                    value={age}
+                    onChangeText={(text) => dispatch(setAge(text))}
                   />
                 </View>
               </View>
 
-              {/* Email */}
+              {/* Phone */}
               <View className="mb-4">
-                <Text style={style.label}>Email</Text>
+                <Text style={style.label}>Phone</Text>
                 <View style={style.inputWrapper}>
-                  <Feather name="mail" size={16} color="#6b6b6b" />
+                  <Feather name="phone" size={16} color="#6b6b6b" />
                   <TextInput
-                    placeholder="juan@email.com"
+                    placeholder="Enter your phone number"
                     placeholderTextColor="#9a9a9a"
                     style={style.input}
-                    keyboardType="email-address"
+                    keyboardType="phone-pad"
                     autoCapitalize="none"
-                    value={email}
-                    onChangeText={setEmail}
+                    value={phone}
+                    onChangeText={(text) => dispatch(setPhone(text))}
                   />
                 </View>
               </View>
@@ -83,13 +92,13 @@ const Register = () => {
                 <View style={style.inputWrapper}>
                   <Feather name="lock" size={16} color="#6b6b6b" />
                   <TextInput
-                    placeholder="••••••••"
+                    placeholder="Create your password"
                     placeholderTextColor="#9a9a9a"
                     style={[style.input, { flex: 1 }]}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => dispatch(setPassword(text))}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
@@ -105,11 +114,11 @@ const Register = () => {
 
               {/* Confirm Password */}
               <View className="mb-5">
-                <Text style={style.label}>Confirm password</Text>
+                <Text style={style.label}>Confirm Password</Text>
                 <View style={style.inputWrapper}>
                   <Feather name="lock" size={16} color="#6b6b6b" />
                   <TextInput
-                    placeholder="••••••••"
+                    placeholder="Confirm your password"
                     placeholderTextColor="#9a9a9a"
                     style={[style.input, { flex: 1 }]}
                     secureTextEntry={!showConfirm}
@@ -129,10 +138,46 @@ const Register = () => {
                 </View>
               </View>
 
+              {/* Are you a PWD? */}
+              <View className="mb-5">
+                <Text style={style.label}>Are you a PWD?</Text>
+                <View style={style.radioGroup}>
+                  {/* Yes */}
+                  <TouchableOpacity
+                    style={style.radioOption}
+                    onPress={() => dispatch(setIsPwd(true))}
+                  >
+                    <View style={style.radioOuter}>
+                      {isPwd === true && <View style={style.radioInner} />}
+                    </View>
+                    <Text style={style.radioLabel}>Yes</Text>
+                  </TouchableOpacity>
+
+                  {/* No */}
+                  <TouchableOpacity
+                    style={style.radioOption}
+                    onPress={() => dispatch(setIsPwd(false))}
+                  >
+                    <View style={style.radioOuter}>
+                      {isPwd === false && <View style={style.radioInner} />}
+                    </View>
+                    <Text style={style.radioLabel}>No</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               {/* Button */}
-              <TouchableOpacity style={style.button} activeOpacity={0.85}>
-                <Text style={style.buttonText}>Create account</Text>
-              </TouchableOpacity>
+              <View style={style.buttonCtn}>
+                <TouchableOpacity style={style.button} activeOpacity={0.85}>
+                  <Text style={style.buttonText}>Create account</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={style.clearBtn}
+                  onPress={() => dispatch(clearRegister())}
+                >
+                  <Text style={style.clearBtnText}>Clear </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Sign in link */}
@@ -151,12 +196,12 @@ const Register = () => {
 
 const style = StyleSheet.create({
   title: {
-    fontFamily: "Poppins-Medium",
+    fontFamily: "Montserrat",
     fontSize: 26,
     color: "#1a1a1a",
   },
   subtitle: {
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Montserrat",
     fontSize: 13,
     color: "#4a4a4a",
     marginTop: 4,
@@ -170,7 +215,7 @@ const style = StyleSheet.create({
     marginHorizontal: 20,
   },
   label: {
-    fontFamily: "Poppins-Medium",
+    fontFamily: "Montserrat",
     fontSize: 12,
     color: "#2d2d2d",
     marginBottom: 6,
@@ -188,29 +233,74 @@ const style = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Montserrat",
     fontSize: 13,
     color: "#2d2d2d",
     padding: 0,
   },
+  radioGroup: {
+    flexDirection: "row",
+    gap: 24,
+    paddingHorizontal: 4,
+    marginTop: 4,
+  },
+  radioOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: "#6E8DE0",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgba(255,255,255,0.6)",
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#6E8DE0",
+  },
+  radioLabel: {
+    fontFamily: "Montserrat",
+    fontSize: 13,
+    color: "#2d2d2d",
+  },
+  buttonCtn: {
+    gap: 10,
+  },
   button: {
     backgroundColor: "#6E8DE0",
-    borderRadius: 12,
+    borderRadius: 10,
     paddingVertical: 13,
     alignItems: "center",
   },
+  clearBtn: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  clearBtnText: {
+    fontFamily: "Montserrat",
+    fontSize: 14,
+  },
   buttonText: {
-    fontFamily: "Poppins-Medium",
+    fontFamily: "Montserrat",
     fontSize: 14,
     color: "#fff",
   },
   footerText: {
-    fontFamily: "Poppins-Regular",
+    fontFamily: "Montserrat",
     fontSize: 13,
     color: "#3a3a3a",
   },
   footerLink: {
-    fontFamily: "Poppins-Medium",
+    fontFamily: "Montserrat",
     fontSize: 13,
     color: "#2a50a8",
   },
