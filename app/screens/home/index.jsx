@@ -24,29 +24,16 @@ const sLogo = require("@/assets/images/saferoute-logo.png");
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const Home = () => {
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(2);
+  const [viewNotification, setViewNotification] = useState(false);
 
   return (
-    <SafeAreaView className="bg-[#fcfcfc] w-full h-full">
-      <View style={{ overflow: "hidden", paddingBottom: 3 }}>
-        <View
-          className="py-3 bg-white px-4"
-          style={{
-            elevation: 3,
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <View style={{ display: "flex", flexDirection: "row" }}>
+    <SafeAreaView style={style.safeArea}>
+      <View style={style.headerContainer}>
+        <View style={style.headerContent}>
+          <View style={style.logoContainer}>
             <Image source={sLogo} className="w-12 h-10" />
-            <Text
-              style={{ fontFamily: "Montserrat-Bold", fontSize: 17 }}
-              className="ml-4 mt-1.5"
-            >
-              Saferoute
-            </Text>
+            <Text style={style.logoText}>Saferoute</Text>
           </View>
 
           <TouchableOpacity
@@ -56,7 +43,7 @@ const Home = () => {
             <View className="relative">
               <Ionicons name="notifications-outline" size={24} color="black" />
               {notificationCount > 0 && (
-                <View className="bg-red-600 w-4 h-4 rounded-full absolute -top-1 -right-1 items-center justify-center">
+                <View style={style.notification}>
                   <Text className="text-white text-xs font-bold">
                     {notificationCount}
                   </Text>
@@ -66,6 +53,7 @@ const Home = () => {
           </TouchableOpacity>
         </View>
       </View>
+      {viewNotification && <NotificationComponent />}
       <ScrollView vertical showsHorizontalScrollIndicator={false}>
         <TouchableOpacity className="mb-3 mt-3">
           <ImageBackground source={sunny} style={style.image}>
@@ -176,6 +164,46 @@ const Home = () => {
 };
 
 const style = StyleSheet.create({
+  safeArea: {
+    backgroundColor: "#fcfcfc",
+    width: "100%",
+    height: "100%",
+  },
+  headerContainer: {
+    overflow: "hidden",
+    paddingBottom: 3,
+  },
+  headerContent: {
+    elevation: 3,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "white",
+  },
+  logoContainer: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  logoText: {
+    fontFamily: "Montserrat-Bold",
+    fontSize: 17,
+    marginLeft: 12,
+    marginTop: 6,
+  },
+  notification: {
+    backgroundColor: "red",
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    position: "absolute",
+    top: -4,
+    right: -4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   shadow: {
     shadowColor: "#000",
     shadowOffset: {
