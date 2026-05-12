@@ -7,9 +7,9 @@ import { useSelector } from "react-redux";
 const ScreensLayout = () => {
   const { isAuthenticated, token } = useSelector((state) => state.auth);
   const { isOpen } = useSelector((state) => state.modal);
-  console.log("isAuthenticated:", isAuthenticated, "token:", token);
 
   if (!isAuthenticated || !token) {
+    //todo: validate the token expiry
     return <Redirect href="/auth/login" />;
   }
 
