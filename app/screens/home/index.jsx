@@ -1,4 +1,5 @@
 import NotificationComponent from "@/components/NotificationComponent";
+import { useGetAllArticlesQuery } from "@/redux/articleService";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
@@ -27,6 +28,10 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const Home = () => {
   const [notificationCount, setNotificationCount] = useState(2);
   const [viewNotification, setViewNotification] = useState(false);
+
+  //rtk query
+  const { data: articlesData } = useGetAllArticlesQuery();
+  const article = articlesData?.articles ?? [];
 
   return (
     <SafeAreaView style={style.safeArea}>
@@ -128,21 +133,43 @@ const Home = () => {
               showsHorizontalScrollIndicator={false}
               style={style.article}
             >
-              <View className="w-[14rem] bg-red-600 mr-5 h-[12rem] rounded-xl">
-                <Text></Text>
-              </View>
+              {/**articles map here */}
+              {article
+                .slice()
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) //sort for latest
+                .map((article, _index) => (
+                  <View key={article._id} style={style.articleCard}>
+                    {article.photoUrl ? (
+                      <View style={style.articleImage}>
+                        <Text>image placeholder</Text>
+                      </View>
+                    ) : null}
 
-              <View className="w-[14rem] bg-[rgba(31,29,29,0.43)] mr-5 h-[12rem] rounded-xl">
-                <Text></Text>
-              </View>
-
-              <View className="w-[14rem] bg-[rgba(63,63,63,0.43)] mr-5 h-[12rem] rounded-xl">
-                <Text></Text>
-              </View>
-
-              <View className="w-[14rem] bg-[rgba(66,62,62,0.43)] mr-5 h-[12rem] rounded-xl">
-                <Text></Text>
-              </View>
+                    <View style={style.articleInfo}>
+                      <Text style={style.articleTitle}>{article.title}</Text>
+                      <Text style={style.articleDescription}>
+                        {article.description}
+                      </Text>
+                    </View>
+                    <View style={style.footer}>
+                      <Text style={style.createdAt}>
+                        {article.createdAt
+                          ? new Date(article.createdAt).toLocaleString(
+                              "en-US",
+                              {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )
+                          : null}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
             </ScrollView>
           </View>
         </View>
@@ -223,6 +250,48 @@ const style = StyleSheet.create({
   article: {
     marginTop: 5,
     width: SCREEN_WIDTH - 32,
+    display: "flex",
+    gap: 20,
+  },
+  articleCard: {
+    width: 200,
+    height: 192,
+    backgroundColor: "#e4e4e4",
+    marginRight: 10,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  articleImage: {
+    backgroundColor: "white",
+    height: 90,
+    width: "100%",
+    marginTop: 8,
+    borderRadius: 4,
+    alignSelf: "center",
+    elevation: 2,
+  },
+  articleInfo: {
+    marginTop: 8,
+    width: "100%",
+    paddingHorizontal: 3,
+  },
+  articleTitle: {
+    fontFamily: "Montserrat",
+  },
+  articleDescription: {
+    fontFamily: "Montserrat",
+    fontSize: 10,
+  },
+  createdAt: {
+    fontFamily: "Montserrat",
+    fontSize: 10,
+    color: "#828181",
+  },
+  footer: {
+    marginTop: "auto",
   },
   reminderContainer: {
     marginTop: 3,
