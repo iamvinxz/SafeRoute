@@ -8,3 +8,4 @@ export const REGISTER = "/api/auth/register";
 export const LOGOUT = "/api/auth/logout";
 export const GET_ALL_PINNED_LOCATIONS = "/api/mark/pin/all";
 export const CREATE_FLOOD_REPORT = "/api/floods/report";
+export const GET_ALL_ARTICLES = "/api/article/all";
