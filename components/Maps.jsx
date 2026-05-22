@@ -1,4 +1,5 @@
 import Flyto from "@/components/FlyTo";
+import { useGetMeQuery } from "@/redux/authService";
 import { useGetTinajerosQuery } from "@/redux/GeoJsonService";
 import {
   useGetAllPinnedLocationsQuery,
@@ -8,6 +9,7 @@ import { isOpen } from "@/states/modalSlice";
 import { landMarks } from "@/utils/landMark";
 import getLeafletHTML from "@/utils/leafletHTML";
 import { pinIcon } from "@/utils/svgIcons";
+import { useWebSocket } from "@/utils/useWebSocket";
 import { webViewStyles } from "@/utils/webViewStyles";
 import { LayersPlus } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -34,10 +36,16 @@ export default function Maps() {
   const { data: Tinajeros } = useGetTinajerosQuery();
   const { data: segmentsObj } = useGetAllSegmentsQuery();
   const { data: pinnnedLocations } = useGetAllPinnedLocationsQuery();
+  const { data: getMe } = useGetMeQuery();
 
+  useWebSocket();
+
+  const isSosEnabled = getMe?.user?.isSosEnabled;
   TinajerosRef.current = Tinajeros;
   segmentsRef.current = segmentsObj?.segments;
   pinnedLocationRef.current = pinnnedLocations?.pins;
+
+  console.log("isSosEnabled:", getMe?.user?.isSosEnabled);
 
   // geojson and landmarks
   injectLayersRef.current = () => {
@@ -247,6 +255,11 @@ export default function Maps() {
     }
   };
 
+  const handleSendSOS = () => {
+    // we'll implement this next
+    console.log("SOS triggered");
+  };
+
   // Memoized WebView — onLoadEnd reads from refs so it always gets latest data/functions
   const webView = useMemo(
     () => (
@@ -293,6 +306,12 @@ export default function Maps() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {isSosEnabled && (
+        <TouchableOpacity style={styles.sosButton} onPress={handleSendSOS}>
+          <Text style={styles.sosButtonText}>SEND SOS</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         style={styles.floodReportOverlay}
@@ -363,5 +382,28 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: "100%",
     borderWidth: 1,
+  },
+  sosButton: {
+    position: "absolute",
+    bottom: 40,
+    right: 135,
+    backgroundColor: "#dc2626",
+    width: 100,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  sosButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+    fontFamily: "Montserrat",
   },
 });
