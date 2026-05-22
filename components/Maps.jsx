@@ -1,4 +1,5 @@
 import Flyto from "@/components/FlyTo";
+import SosModal from "@/components/SosModal";
 import { useGetMeQuery } from "@/redux/authService";
 import { useGetTinajerosQuery } from "@/redux/GeoJsonService";
 import {
@@ -31,6 +32,7 @@ export default function Maps() {
   const injectSegmentsRef = useRef(null);
   const injectPinnedLocationRef = useRef(null);
   const [zoomLevel, setZoomLevel] = useState(null);
+  const [sosModalVisible, setSosModalVisible] = useState(false);
 
   //rtk query
   const { data: Tinajeros } = useGetTinajerosQuery();
@@ -256,8 +258,7 @@ export default function Maps() {
   };
 
   const handleSendSOS = () => {
-    // we'll implement this next
-    console.log("SOS triggered");
+    setSosModalVisible(true);
   };
 
   // Memoized WebView — onLoadEnd reads from refs so it always gets latest data/functions
@@ -312,6 +313,11 @@ export default function Maps() {
           <Text style={styles.sosButtonText}>SEND SOS</Text>
         </TouchableOpacity>
       )}
+
+      <SosModal
+        visible={sosModalVisible}
+        onClose={() => setSosModalVisible(false)}
+      />
 
       <TouchableOpacity
         style={styles.floodReportOverlay}
