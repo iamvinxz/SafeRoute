@@ -1,5 +1,14 @@
 import messaging from "@react-native-firebase/messaging";
+import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export const useFCM = () => {
   useEffect(() => {
@@ -29,14 +38,13 @@ export const useFCM = () => {
     // handle foreground notifications
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
       console.log("Foreground notification:", remoteMessage);
-      await notifee.displayNotification({
-        title: remoteMessage.notification?.title,
-        body: remoteMessage.notification?.body,
-        android: {
-          channelId: "flood_alerts",
-          pressAction: { id: "default" },
-          importance: AndroidImportance.HIGH,
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: remoteMessage.notification?.title,
+          body: remoteMessage.notification?.body,
+          sound: true,
         },
+        trigger: null,
       });
     });
 
