@@ -1,5 +1,6 @@
 import CreateFloodReport from "@/components/CreateFloodReport";
 import TabBar from "@/components/TabBar";
+import { useFCM } from "@/utils/useFCM";
 import { Redirect, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useSelector } from "react-redux";
@@ -7,6 +8,8 @@ import { useSelector } from "react-redux";
 const ScreensLayout = () => {
   const { isAuthenticated, token } = useSelector((state) => state.auth);
   const { isOpen } = useSelector((state) => state.modal);
+
+  useFCM();
 
   if (!isAuthenticated || !token) {
     //todo: validate the token expiry
