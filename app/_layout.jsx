@@ -1,11 +1,33 @@
 import "@/global.css";
 import { store } from "@/store.js";
+import notifee, { AndroidImportance } from "@notifee/react-native";
+import messaging from "@react-native-firebase/messaging";
 import { useFonts } from "expo-font";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
+
+notifee.createChannel({
+  id: "flood_alerts",
+  name: "Flood Alerts",
+  importance: AndroidImportance.HIGH,
+});
+
+// ✅ background handler
+messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  console.log("Background notification:", remoteMessage);
+
+  await notifee.displayNotification({
+    title: remoteMessage.notification?.title,
+    body: remoteMessage.notification?.body,
+    android: {
+      channelId: "flood_alerts",
+      pressAction: { id: "default" },
+    },
+  });
+});
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
