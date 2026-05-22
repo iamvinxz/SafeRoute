@@ -9,6 +9,7 @@ const article = api.injectEndpoints({
       }),
     }),
   }),
+  overrideExisting: true,
 });
 
 export const { useGetAllArticlesQuery } = article;
