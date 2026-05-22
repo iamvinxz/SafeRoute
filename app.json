@@ -15,7 +15,7 @@
       "package": "com.saferoute.app",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icon.png",
+        "foregroundImage": "./assets/icon.jpg",
         "backgroundColor": "#E6F4FE"
       },
       "edgeToEdgeEnabled": true,
