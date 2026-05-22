@@ -1,5 +1,5 @@
 import { api } from "@/redux/APIService";
-import { LOGIN, LOGOUT, REGISTER } from "@/redux/Endpoint";
+import { GET_ME, LOGIN, LOGOUT, REGISTER } from "@/redux/Endpoint";
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -23,9 +23,19 @@ export const authApi = api.injectEndpoints({
         body: payload,
       }),
     }),
+    getMe: build.query({
+      query: () => ({
+        url: GET_ME,
+      }),
+      providesTags: ["Me"],
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useLoginMutation, useLogoutMutation, useRegisterMutation } =
-  authApi;
+export const {
+  useLoginMutation,
+  useLogoutMutation,
+  useRegisterMutation,
+  useGetMeQuery,
+} = authApi;
