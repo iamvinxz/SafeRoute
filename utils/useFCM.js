@@ -4,7 +4,8 @@ import { useEffect } from "react";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -43,6 +44,9 @@ export const useFCM = () => {
           title: remoteMessage.notification?.title,
           body: remoteMessage.notification?.body,
           sound: true,
+          android: {
+            channelId: "flood_alerts",
+          },
         },
         trigger: null,
       });
