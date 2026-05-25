@@ -1,55 +1,59 @@
 import messaging from "@react-native-firebase/messaging";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+import { Platform } from "react-native";
 
 export const useFCM = () => {
   useEffect(() => {
     const setup = async () => {
-      // request permission
-      const authStatus = await messaging().requestPermission();
-      const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      try {
+        if (Platform.OS === "android") {
+          await Notifications.setNotificationChannelAsync("flood_alerts", {
+            name: "Flood Alerts",
+            importance: Notifications.AndroidImportance.HIGH,
+            sound: "default",
+            vibrationPattern: [0, 250, 250, 250],
+            enableVibrate: true,
+          });
+        }
 
-      if (!enabled) {
-        console.log("Notification permission denied");
-        return;
+        let permissions = await Notifications.getPermissionsAsync();
+
+        if (!permissions.granted && permissions.canAskAgain) {
+          permissions = await Notifications.requestPermissionsAsync();
+        }
+
+        if (!permissions.granted) {
+          console.log("Notification permission denied");
+          return;
+        }
+
+        const token = await messaging().getToken();
+        await messaging().subscribeToTopic("users");
+      } catch (e) {
+        console.error("Setup crashed:", e);
       }
-
-      // get FCM token
-      const token = await messaging().getToken();
-      console.log("FCM Token:", token);
-
-      // subscribe to resident_alerts topic
-      await messaging().subscribeToTopic("users");
-      console.log("Subscribed to users topic");
     };
 
     setup();
 
     // handle foreground notifications
     const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log("Foreground notification:", remoteMessage);
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: remoteMessage.notification?.title,
-          body: remoteMessage.notification?.body,
-          sound: true,
-          android: {
-            channelId: "flood_alerts",
+      try {
+        //display notification on foreground
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: remoteMessage.notification?.title,
+            body: remoteMessage.notification?.body,
+            sound: true,
+            data: remoteMessage.data ?? {},
+            ...(Platform.OS === "android" && { channelId: "flood_alerts" }),
           },
-        },
-        trigger: null,
-      });
+          trigger: null,
+        });
+      } catch (error) {
+        console.error(error);
+      }
     });
 
     return unsubscribe;
