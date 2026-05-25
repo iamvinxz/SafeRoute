@@ -5,22 +5,22 @@ import { useFonts } from "expo-font";
 import * as Notification from "expo-notifications";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React from "react";
+import { useEffect } from "react";
 import { Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
 
 //notification channel
-if (Platform.OS === "android") {
-  Notification.setNotificationChannelAsync("flood_alerts", {
-    name: "Flood Alerts",
-    importance: Notification.AndroidImportance.HIGH,
-    sound: "default",
-    vibrationPattern: [0, 250, 250, 250],
-  });
-}
+Notification.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
-// ✅ background handler
+//background handler
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log("Background notification:", remoteMessage);
 });
@@ -31,7 +31,19 @@ const RootLayout = () => {
     "Montserrat-Bold": require("@/assets/fonts/Montserrat-Bold.ttf"),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      Notification.setNotificationChannelAsync("flood_alerts", {
+        name: "Flood Alerts",
+        importance: Notification.AndroidImportance.HIGH,
+        sound: "default",
+        vibrationPattern: [0, 250, 250, 250],
+        enableVibrate: true,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
