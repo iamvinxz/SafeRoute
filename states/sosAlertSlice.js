@@ -19,8 +19,8 @@ const sosAlertSlice = createSlice({
       state.status = action.payload;
     },
 
-    hideSosModal: (state) => {
-      state.showModal = false;
+    toggleShowModal: (state) => {
+      state.showModal = !state.showModal;
     },
     clearSosAlert: (state) => {
       state.activeSosId = null;
@@ -34,6 +34,6 @@ export const {
   setSosAlert,
   updateSosAlertStatus,
   clearSosAlert,
-  hideSosModal,
+  toggleShowModal,
 } = sosAlertSlice.actions;
 export default sosAlertSlice.reducer;
