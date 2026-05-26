@@ -7,11 +7,13 @@ const mapMarkersApi = api.injectEndpoints({
       query: () => ({
         url: GET_SEGMENTS,
       }),
+      providesTags: ["FloodSegments"],
     }),
     getAllPinnedLocations: build.query({
       query: () => ({
         url: GET_ALL_PINNED_LOCATIONS,
       }),
+      providesTags: ["PinnedLocations"],
     }),
   }),
   overrideExisting: true,
