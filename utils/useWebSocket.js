@@ -1,4 +1,6 @@
 import { api } from "@/redux/APIService";
+import { updateSosAlertStatus } from "@/states/sosAlertSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 
@@ -15,12 +17,53 @@ export const useWebSocket = () => {
       console.log("WebSocket connected");
     };
 
-    ws.onmessage = (event) => {
+    ws.onmessage = async (event) => {
       const data = JSON.parse(event.data);
-      console.log("WebSocket message:", data);
 
+      //for enable sos
       if (data.type === "sos_toggle") {
         dispatch(api.util.invalidateTags(["Me"]));
+      }
+
+      //for new segment
+      if (data.type === "flood_segment") {
+        dispatch(api.util.invalidateTags(["FloodSegments"]));
+      }
+
+      //pin location
+      if (data.type === "flood_pin") {
+        dispatch(api.util.invalidateTags(["PinnedLocations"]));
+      }
+
+      if (data.type === "delete_segment") {
+        dispatch(api.util.invalidateTags(["FloodSegments"]));
+      }
+
+      if (data.type === "delete_pin") {
+        dispatch(api.util.invalidateTags(["PinnedLocations"]));
+      }
+
+      //update status
+      if (data.type === "sos_status_update") {
+        const { status, id } = data.data;
+        const stored = await AsyncStorage.getItem("activeSos");
+
+        if (stored) {
+          const { sosId } = JSON.parse(stored);
+
+          if (sosId === id.toString()) {
+            dispatch(updateSosAlertStatus(status));
+
+            await AsyncStorage.setItem(
+              "activeSos",
+              JSON.stringify({ sosId, status }),
+            );
+
+            if (status === "resolved" || status === "cancelled") {
+              await AsyncStorage.removeItem("activeSos");
+            }
+          }
+        }
       }
     };
 
