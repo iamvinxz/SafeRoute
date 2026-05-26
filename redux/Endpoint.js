@@ -11,3 +11,5 @@ export const CREATE_FLOOD_REPORT = "/api/floods/report";
 export const GET_ALL_ARTICLES = "/api/article/all";
 export const GET_ME = "/api/auth/me";
 export const SEND_SOS = "/api/sos/send";
+export const UPDATE_FCM_TOKEN = "/api/user/fcmToken";
+export const GET_SOS_BY_ID = "/api/sos/getSOSbyId";
