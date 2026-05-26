@@ -1,4 +1,4 @@
-import { hideSosModal } from "@/states/sosAlertSlice";
+import { toggleShowModal } from "@/states/sosAlertSlice";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,7 +10,7 @@ export default function SosStatusModal() {
   const isDispatched = status === "dispatched";
 
   const handleClose = async () => {
-    dispatch(hideSosModal());
+    dispatch(toggleShowModal());
   };
 
   return (
@@ -25,6 +25,9 @@ export default function SosStatusModal() {
                 Your SOS has been received. Waiting for a rescuer to be
                 dispatched...
               </Text>
+              <TouchableOpacity style={styles.btn} onPress={handleClose}>
+                <Text style={styles.btnText}>Okay</Text>
+              </TouchableOpacity>
             </>
           )}
 
