@@ -1,9 +1,13 @@
+import { useUpdateFCMTokenMutation } from "@/redux/fcmService";
 import messaging from "@react-native-firebase/messaging";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 
 export const useFCM = () => {
+  //rtk
+  const [updateFCMToken] = useUpdateFCMTokenMutation();
+
   useEffect(() => {
     const setup = async () => {
       try {
@@ -29,7 +33,11 @@ export const useFCM = () => {
         }
 
         const token = await messaging().getToken();
+        await updateFCMToken(token);
+
         await messaging().subscribeToTopic("users");
+        await messaging().subscribeToTopic("flood_alerts");
+        await messaging().subscribeToTopic("sos_status_update");
       } catch (e) {
         console.error("Setup crashed:", e);
       }
