@@ -1,5 +1,5 @@
 import { api } from "@/redux/APIService";
-import { SEND_SOS } from "@/redux/Endpoint";
+import { GET_SOS_BY_ID, SEND_SOS } from "@/redux/Endpoint";
 
 const sosApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -10,8 +10,14 @@ const sosApi = api.injectEndpoints({
         body: payload,
       }),
     }),
+    getSosById: build.query({
+      query: (id) => ({
+        url: GET_SOS_BY_ID,
+        params: { id },
+      }),
+    }),
   }),
   overrideExisting: true,
 });
 
-export const { useSendSosMutation } = sosApi;
+export const { useSendSosMutation, useGetSosByIdQuery } = sosApi;
