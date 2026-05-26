@@ -4,6 +4,7 @@ import authReducer from "@/states/authSlice";
 import floodReportReducer from "@/states/floodReportSlice";
 import modalReducer from "@/states/modalSlice";
 import registerReducer from "@/states/registerSlice";
+import sosAlertReducer from "@/states/sosAlertSlice";
 import { configureStore } from "@reduxjs/toolkit";
 
 export const store = configureStore({
@@ -14,6 +15,7 @@ export const store = configureStore({
     register: registerReducer,
     modal: modalReducer,
     report: floodReportReducer,
+    sosAlert: sosAlertReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })
