@@ -1,5 +1,6 @@
 import Flyto from "@/components/FlyTo";
 import SosModal from "@/components/SosModal";
+import SosStatusModal from "@/components/SosStatusModal";
 import { useGetMeQuery } from "@/redux/authService";
 import { useGetTinajerosQuery } from "@/redux/GeoJsonService";
 import {
@@ -325,6 +326,7 @@ export default function Maps() {
       >
         <LayersPlus size={16} color="#303030" />
       </TouchableOpacity>
+      <SosStatusModal />
     </View>
   );
 }
