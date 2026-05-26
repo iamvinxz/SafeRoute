@@ -8,6 +8,7 @@ import {
   useGetAllSegmentsQuery,
 } from "@/redux/mapMarkers";
 import { isOpen } from "@/states/modalSlice";
+import { toggleShowModal } from "@/states/sosAlertSlice";
 import { landMarks } from "@/utils/landMark";
 import getLeafletHTML from "@/utils/leafletHTML";
 import { pinIcon } from "@/utils/svgIcons";
@@ -18,7 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { WebView } from "react-native-webview";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const leafletHTML = getLeafletHTML();
 
@@ -34,6 +35,7 @@ export default function Maps() {
   const injectPinnedLocationRef = useRef(null);
   const [zoomLevel, setZoomLevel] = useState(null);
   const [sosModalVisible, setSosModalVisible] = useState(false);
+  const { status, showModal } = useSelector((state) => state.sosAlert);
 
   //rtk query
   const { data: Tinajeros } = useGetTinajerosQuery();
@@ -47,8 +49,8 @@ export default function Maps() {
   TinajerosRef.current = Tinajeros;
   segmentsRef.current = segmentsObj?.segments;
   pinnedLocationRef.current = pinnnedLocations?.pins;
-
-  console.log("isSosEnabled:", getMe?.user?.isSosEnabled);
+  const isSOSActive =
+    status === "pending" || status === "dispatched" || status === "responded";
 
   // geojson and landmarks
   injectLayersRef.current = () => {
@@ -310,9 +312,22 @@ export default function Maps() {
       </View>
 
       {isSosEnabled && (
-        <TouchableOpacity style={styles.sosButton} onPress={handleSendSOS}>
-          <Text style={styles.sosButtonText}>SEND SOS</Text>
-        </TouchableOpacity>
+        <>
+          {isSOSActive ? (
+            <TouchableOpacity
+              style={[styles.sosButton, styles.sosActiveButton]}
+              onPress={() => dispatch(toggleShowModal())}
+            >
+              <Text style={styles.sosButtonText}>
+                {showModal ? "Hide Status" : "SOS Status"}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.sosButton} onPress={handleSendSOS}>
+              <Text style={styles.sosButtonText}>SEND SOS</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
 
       <SosModal
