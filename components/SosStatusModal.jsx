@@ -8,6 +8,7 @@ export default function SosStatusModal() {
 
   const isPending = status === "pending";
   const isDispatched = status === "dispatched";
+  const isResponded = status === "responded";
 
   const handleClose = async () => {
     dispatch(toggleShowModal());
@@ -34,10 +35,25 @@ export default function SosStatusModal() {
           {isDispatched && (
             <>
               <Text style={styles.emoji}>🚨</Text>
-              <Text style={styles.title}>Rescuer On The Way</Text>
+              <Text style={styles.title}>Rescuer on the way</Text>
               <Text style={styles.subtitle}>
                 A rescuer has been dispatched to your location. Please stay safe
                 and remain at your location.
+              </Text>
+              <TouchableOpacity style={styles.btn} onPress={handleClose}>
+                <Text style={styles.btnText}>Got it</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {isResponded && (
+            <>
+              <Text style={styles.emoji}>✅</Text>
+              <Text style={styles.title}>Rescuer got you now!</Text>
+              <Text style={styles.subtitle}>
+                Please be guided and follow any instruction our rescuer
+                requested you to accomplish. Once you arrived on the evacuation
+                center assistance will be proviced.
               </Text>
               <TouchableOpacity style={styles.btn} onPress={handleClose}>
                 <Text style={styles.btnText}>Got it</Text>
