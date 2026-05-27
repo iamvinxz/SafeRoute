@@ -1,8 +1,12 @@
+import AnnouncementCard from "@/components/AnnouncementCard";
 import NotificationComponent from "@/components/NotificationComponent";
+import { useGetAllAnnouncementQuery } from "@/redux/announcementService";
 import { useGetAllArticlesQuery } from "@/redux/articleService";
+import { useGetWeatherQuery } from "@/redux/weatherService";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState } from "react";
+import * as Location from "expo-location";
+import { useEffect, useState } from "react";
 import {
   Dimensions,
   Image,
@@ -28,10 +32,30 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const Home = () => {
   const [notificationCount, setNotificationCount] = useState(2);
   const [viewNotification, setViewNotification] = useState(false);
+  const [coords, setCoords] = useState(null);
 
   //rtk query
   const { data: articlesData } = useGetAllArticlesQuery();
+  const { data: announcementData } = useGetAllAnnouncementQuery();
+  const { data: weatherData, isLoading: weatherLoading } = useGetWeatherQuery(
+    coords,
+    { skip: !coords },
+  );
   const article = articlesData?.articles ?? [];
+  const announcements = announcementData?.announcements ?? [];
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") return;
+
+      const location = await Location.getCurrentPositionAsync({});
+      setCoords({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    })();
+  }, []);
 
   return (
     <SafeAreaView style={style.safeArea}>
@@ -42,7 +66,7 @@ const Home = () => {
             <Text style={style.logoText}>Saferoute</Text>
           </View>
 
-          <TouchableOpacity
+          {/* <TouchableOpacity
             className="mr-1"
             onPress={() => setViewNotification((notif) => !notif)}
           >
@@ -56,7 +80,7 @@ const Home = () => {
                 </View>
               )}
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
       {viewNotification && <NotificationComponent />}
@@ -80,41 +104,45 @@ const Home = () => {
                     className="text-white"
                     style={{ fontFamily: "Montserrat" }}
                   >
-                    Wednesday
+                    {weatherData?.location ?? "Fetching location..."}
                   </Text>
                 </View>
 
-                <Text style={style.temperature}>33 °C</Text>
+                <Text style={style.temperature}>
+                  {weatherData?.temperature != null
+                    ? `${weatherData.temperature} °C`
+                    : "--"}
+                </Text>
               </View>
             </LinearGradient>
           </ImageBackground>
         </TouchableOpacity>
 
-        <View className="mb-5">
-          <ImageBackground source={relief} style={style.image2}>
-            <LinearGradient
-              className="absolute"
-              style={StyleSheet.absoluteFill}
-              colors={["rgba(0,0,0, 0.5)", "rgba(0,0,0, 0.5)"]}
-            >
-              <View className="flex flex-row justify-between items-center p-3 px-5">
-                <View>
-                  <Text
-                    className="text-[0.85rem] mt-4 color-white w-12.3 shadow-black"
-                    style={{ fontFamily: "Montserrat" }}
-                  >
-                    Together for relief,
-                  </Text>
-                  <Text
-                    className="text-[0.85rem] color-white w-12.3 shadow-black"
-                    style={{ fontFamily: "Montserrat" }}
-                  >
-                    Stronger in Recovery
-                  </Text>
-                </View>
+        {/* Announcement Section */}
+        <View className="mb-2 ml-4">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginTop: 5 }}
+            contentContainerStyle={{ gap: 10, paddingRight: 16 }}
+          >
+            {announcements.length > 0 ? (
+              announcements.map((item) => (
+                <AnnouncementCard
+                  key={item._id}
+                  title={item.title}
+                  content={item.content}
+                  author={item.sentBy}
+                  createdAt={item.createdAt}
+                />
+              ))
+            ) : (
+              <View style={style.fallbackContainer}>
+                <Ionicons name="megaphone-outline" size={24} color="#b0b0b0" />
+                <Text style={style.fallbackText}>No announcements yet</Text>
               </View>
-            </LinearGradient>
-          </ImageBackground>
+            )}
+          </ScrollView>
         </View>
 
         {/**article */}
@@ -173,7 +201,6 @@ const Home = () => {
             </ScrollView>
           </View>
         </View>
-
         <View className="ml-4">
           <Text className="text-[1.1rem]" style={{ fontFamily: "Montserrat" }}>
             Things to remember
@@ -360,6 +387,23 @@ const style = StyleSheet.create({
   forecastFont: {
     fontFamily: "Poppins-Regular",
     fontSize: 12,
+  },
+  fallbackContainer: {
+    width: SCREEN_WIDTH - 32,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 20,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: "#e0e0e0",
+    borderStyle: "dashed",
+    backgroundColor: "#fafafa",
+  },
+  fallbackText: {
+    fontSize: 12,
+    fontFamily: "Montserrat",
+    color: "#b0b0b0",
   },
 });
 
