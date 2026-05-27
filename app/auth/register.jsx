@@ -1,4 +1,5 @@
 import { useRegisterMutation } from "@/redux/authService";
+import { clearError, loginFailure } from "@/states/authSlice";
 import {
   clearRegister,
   setAge,
@@ -11,6 +12,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -29,15 +31,33 @@ const Register = () => {
   const { age, phone, password, isPwd } = useSelector(
     (state) => state.register,
   );
+  const authError = useSelector((state) => state.auth.error);
 
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  const [register] = useRegisterMutation();
+  const [register, { isLoading }] = useRegisterMutation();
 
   const handleRegister = async () => {
     try {
+      dispatch(clearError());
+
+      if (!age || !phone || !password || !confirmPassword) {
+        dispatch(loginFailure("Please complete all fields."));
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        dispatch(loginFailure("Passwords do not match."));
+        return;
+      }
+
+      if (password.length < 6) {
+        dispatch(loginFailure("Password must be at least 6 characters."));
+        return;
+      }
+
       await register({
         age,
         phone,
@@ -45,11 +65,16 @@ const Register = () => {
         isPwd,
       }).unwrap();
 
-      console.log("Registered successfuly");
+      dispatch(clearRegister());
+
+      Alert.alert("Success", "Account created successfully.");
+
+      router.replace("/auth/login");
     } catch (error) {
-      console.error(error);
+      dispatch(loginFailure(error?.data?.message || "Registration failed."));
     }
   };
+
   return (
     <LinearGradient
       className="w-full h-full"
@@ -64,7 +89,7 @@ const Register = () => {
         >
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
-            <View className="items-center mb-7">
+            <View className="items-center mb-7 mt-10">
               <Text style={style.title}>Create account</Text>
               <Text style={style.subtitle}>Sign up to get started</Text>
             </View>
@@ -82,7 +107,10 @@ const Register = () => {
                     style={style.input}
                     keyboardType="numeric"
                     value={age}
-                    onChangeText={(text) => dispatch(setAge(text))}
+                    onChangeText={(text) => {
+                      dispatch(clearError());
+                      dispatch(setAge(text));
+                    }}
                   />
                 </View>
               </View>
@@ -99,7 +127,10 @@ const Register = () => {
                     keyboardType="phone-pad"
                     autoCapitalize="none"
                     value={phone}
-                    onChangeText={(text) => dispatch(setPhone(text))}
+                    onChangeText={(text) => {
+                      dispatch(clearError());
+                      dispatch(setPhone(text));
+                    }}
                   />
                 </View>
               </View>
@@ -116,7 +147,10 @@ const Register = () => {
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                     value={password}
-                    onChangeText={(text) => dispatch(setPassword(text))}
+                    onChangeText={(text) => {
+                      dispatch(clearError());
+                      dispatch(setPassword(text));
+                    }}
                   />
                   <TouchableOpacity
                     onPress={() => setShowPassword(!showPassword)}
@@ -191,7 +225,10 @@ const Register = () => {
                   activeOpacity={0.85}
                   onPress={handleRegister}
                 >
-                  <Text style={style.buttonText}>Create account</Text>
+                  <Text style={style.buttonText}>
+                    {" "}
+                    {isLoading ? "Creating account..." : "Create account"}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={style.clearBtn}
@@ -208,9 +245,23 @@ const Register = () => {
             <View className="flex-row justify-center mt-5">
               <Text style={style.footerText}>Already have an account? </Text>
               <TouchableOpacity onPress={() => router.push("auth/login")}>
-                <Text style={style.footerLink}>Sign in</Text>
+                <Text style={style.footerLink}>Log in</Text>
               </TouchableOpacity>
             </View>
+            {authError && (
+              <Text
+                style={{
+                  color: "#dc2626",
+                  fontSize: 12,
+                  marginTop: 20,
+                  marginBottom: 10,
+                  fontFamily: "Montserrat",
+                  textAlign: "center",
+                }}
+              >
+                {authError}
+              </Text>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
