@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "619191680985",
+    "firebase_url": "https://saferoute-backend-696b0-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "saferoute-backend-696b0",
+    "storage_bucket": "saferoute-backend-696b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:619191680985:android:6648238bd5b20c28ada3c8",
+        "android_client_info": {
+          "package_name": "com.saferoute.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA79uG5pDGay1GKb8GKYpv_Y_trXGbDpjA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
