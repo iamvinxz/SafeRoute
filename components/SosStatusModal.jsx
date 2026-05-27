@@ -1,4 +1,5 @@
-import { toggleShowModal } from "@/states/sosAlertSlice";
+import { clearSosAlert, toggleShowModal } from "@/states/sosAlertSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -9,8 +10,14 @@ export default function SosStatusModal() {
   const isPending = status === "pending";
   const isDispatched = status === "dispatched";
   const isResponded = status === "responded";
+  const isResolved = status === "resolved";
 
   const handleClose = async () => {
+    if (isResolved) {
+      await AsyncStorage.removeItem("activeSos");
+      dispatch(clearSosAlert());
+      return;
+    }
     dispatch(toggleShowModal());
   };
 
@@ -57,6 +64,20 @@ export default function SosStatusModal() {
               </Text>
               <TouchableOpacity style={styles.btn} onPress={handleClose}>
                 <Text style={styles.btnText}>Got it</Text>
+              </TouchableOpacity>
+            </>
+          )}
+
+          {isResolved && (
+            <>
+              <Text style={styles.emoji}>🎉</Text>
+              <Text style={styles.title}>You're safe now!</Text>
+              <Text style={styles.subtitle}>
+                Your SOS has been resolved. We're glad you're safe. Please
+                proceed to the evacuation center if needed.
+              </Text>
+              <TouchableOpacity style={styles.btn} onPress={handleClose}>
+                <Text style={styles.btnText}>Close</Text>
               </TouchableOpacity>
             </>
           )}
