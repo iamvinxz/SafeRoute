@@ -55,7 +55,8 @@ const Login = () => {
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Header */}
             <View className="items-center mb-7 mt-10">
-              <Text style={style.title}>Welcome Back</Text>
+              <Text style={style.title}>Welcome to Saferoute</Text>
+
               <Text style={style.subtitle}>Sign in to continue</Text>
             </View>
 
