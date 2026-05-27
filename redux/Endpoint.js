@@ -13,3 +13,5 @@ export const GET_ME = "/api/auth/me";
 export const SEND_SOS = "/api/sos/send";
 export const UPDATE_FCM_TOKEN = "/api/user/fcmToken";
 export const GET_SOS_BY_ID = "/api/sos/getSOSbyId";
+export const GET_ALL_ANNOUNCEMENT = "/api/notifications/all/announcement";
+export const GET_WEATHER_TODAY = "api/weather/current";
