@@ -21,8 +21,8 @@ const conditions = ["ankle-deep", "knee-deep", "chest-deep", "critical"];
 
 export default function SosModal({ visible, onClose }) {
   const dispatch = useDispatch();
-  const [numberOfPersons, setNumberOfPersons] = useState("1");
-  const [streetName, setStreetName] = useState("");
+  const [numberOfPersons, setNumberOfPersons] = useState();
+  const [streetName, setStreetName] = useState();
   const [condition, setCondition] = useState("ankle-deep");
   const [sendSos, { isLoading }] = useSendSosMutation();
 
@@ -53,6 +53,9 @@ export default function SosModal({ visible, onClose }) {
         }),
       );
 
+      setNumberOfPersons("");
+      setStreetName("");
+      setCondition("ankle-deep");
       onClose();
     } catch (error) {
       console.error("SOS error:", error);
