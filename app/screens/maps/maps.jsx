@@ -7,13 +7,7 @@ export default function MapsScreen() {
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 90 }]}>
-      <Maps
-        lat={14.6709}
-        lng={120.9696}
-        onMapPress={({ latitude, longitude }) => {
-          console.log("Pressed:", latitude, longitude);
-        }}
-      />
+      <Maps lat={14.6709} lng={120.9696} />
     </View>
   );
 }
