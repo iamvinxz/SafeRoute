@@ -14,6 +14,7 @@ import getLeafletHTML from "@/utils/leafletHTML";
 import { pinIcon } from "@/utils/svgIcons";
 import { useWebSocket } from "@/utils/useWebSocket";
 import { webViewStyles } from "@/utils/webViewStyles";
+import * as Location from "expo-location";
 import { LayersPlus } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -33,6 +34,9 @@ export default function Maps() {
   const injectLayersRef = useRef(null);
   const injectSegmentsRef = useRef(null);
   const injectPinnedLocationRef = useRef(null);
+  const userLocationRef = useRef(null);
+  const injectUserLocationRef = useRef(null);
+  const [userLocation, setUserLocation] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(null);
   const [sosModalVisible, setSosModalVisible] = useState(false);
   const { status, showModal } = useSelector((state) => state.sosAlert);
@@ -46,6 +50,7 @@ export default function Maps() {
   useWebSocket();
 
   const isSosEnabled = getMe?.user?.isSosEnabled;
+  userLocationRef.current = userLocation;
   TinajerosRef.current = Tinajeros;
   segmentsRef.current = segmentsObj?.segments;
   pinnedLocationRef.current = pinnnedLocations?.pins;
@@ -228,6 +233,50 @@ export default function Maps() {
   `);
   };
 
+  // user location marker inject function
+  injectUserLocationRef.current = () => {
+    if (!userLocationRef.current || !webViewRef.current) return;
+    const { latitude, longitude } = userLocationRef.current;
+
+    webViewRef.current.injectJavaScript(`
+    (function() {
+      const lat = ${latitude};
+      const lng = ${longitude};
+
+      const userIcon = L.divIcon({
+        html: \`
+          <div style="
+            width: 18px; height: 18px;
+            background: #2563eb;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.3);
+          "></div>
+        \`,
+        className: "",
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+        popupAnchor: [0, -12],
+      });
+
+      if (window.userLocationMarker) {
+        window.userLocationMarker.setLatLng([lat, lng]);
+      } else {
+        window.userLocationMarker = L.marker([lat, lng], { icon: userIcon })
+          .addTo(map)
+          .bindPopup("You are here");
+      }
+    })();
+    true;
+  `);
+  };
+
+  useEffect(() => {
+    if (mapReadyRef.current && userLocation) {
+      injectUserLocationRef.current?.();
+    }
+  }, [userLocation]);
+
   useEffect(() => {
     if (mapReadyRef.current && pinnnedLocations?.pins) {
       injectPinnedLocationRef.current?.();
@@ -247,6 +296,32 @@ export default function Maps() {
       injectLayersRef.current?.();
     }
   }, [Tinajeros]);
+
+  useEffect(() => {
+    let subscription;
+
+    const startWatching = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== "granted") {
+        const { status: newStatus } =
+          await Location.requestForegroundPermissionsAsync();
+        if (newStatus !== "granted") return;
+      }
+
+      const initial = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      setUserLocation(initial.coords);
+
+      subscription = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, distanceInterval: 10 },
+        (loc) => setUserLocation(loc.coords),
+      );
+    };
+
+    startWatching();
+    return () => subscription?.remove();
+  }, []);
 
   // Handle messages from WebView
   const onMessage = (event) => {
@@ -281,6 +356,7 @@ export default function Maps() {
           if (TinajerosRef.current) injectLayersRef.current?.();
           if (segmentsRef.current) injectSegmentsRef.current?.();
           if (pinnedLocationRef.current) injectPinnedLocationRef.current?.();
+          if (userLocationRef.current) injectUserLocationRef.current?.();
         }}
       />
     ),
