@@ -132,7 +132,7 @@ const Home = () => {
                   key={item._id}
                   title={item.title}
                   content={item.content}
-                  author={item.sentBy}
+                  author={item.sentBy?.name}
                   createdAt={item.createdAt}
                 />
               ))
