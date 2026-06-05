@@ -3,6 +3,7 @@ import { clearError, loginFailure } from "@/states/authSlice";
 import {
   clearRegister,
   setAge,
+  setConfirmPassword,
   setIsPwd,
   setPassword,
   setPhone,
@@ -28,12 +29,11 @@ import { useDispatch, useSelector } from "react-redux";
 const Register = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { age, phone, password, isPwd } = useSelector(
+  const { age, phone, password, confirmPassword, isPwd } = useSelector(
     (state) => state.register,
   );
   const authError = useSelector((state) => state.auth.error);
 
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -176,7 +176,10 @@ const Register = () => {
                     secureTextEntry={!showConfirm}
                     autoCapitalize="none"
                     value={confirmPassword}
-                    onChangeText={setConfirmPassword}
+                    onChangeText={(text) => {
+                      dispatch(clearError());
+                      dispatch(setConfirmPassword(text));
+                    }}
                   />
                   <TouchableOpacity
                     onPress={() => setShowConfirm(!showConfirm)}
