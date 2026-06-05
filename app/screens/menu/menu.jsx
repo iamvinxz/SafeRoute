@@ -1,6 +1,7 @@
 import { api } from "@/redux/APIService";
 import { useLogoutMutation } from "@/redux/authService";
 import { clearCredentials } from "@/states/authSlice";
+import { removeToken } from "@/utils/authStorage";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,6 +45,7 @@ const Menu = () => {
   const handleLogout = async () => {
     try {
       await logout().unwrap();
+      await removeToken();
       dispatch(api.util.resetApiState()); //clear cache
       dispatch(clearCredentials());
     } catch (error) {
