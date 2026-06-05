@@ -11,6 +11,7 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,7 +26,7 @@ const sunny = require("@/assets/images/cloud-blue-sky.jpg");
 const rainy = require("@/assets/images/rainy-weather.jpg");
 const relief = require("@/assets/images/relief.jpg");
 const reminder = require("@/assets/images/reminder.png");
-const sLogo = require("@/assets/images/saferoute-logo.png");
+const sLogo = require("@/assets/images/icon.png");
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -33,14 +34,19 @@ const Home = () => {
   const [notificationCount, setNotificationCount] = useState(2);
   const [viewNotification, setViewNotification] = useState(false);
   const [coords, setCoords] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   //rtk query
-  const { data: articlesData } = useGetAllArticlesQuery();
-  const { data: announcementData } = useGetAllAnnouncementQuery();
-  const { data: weatherData, isLoading: weatherLoading } = useGetWeatherQuery(
-    coords,
-    { skip: !coords },
-  );
+  const { data: articlesData, refetch: refetchArticles } =
+    useGetAllArticlesQuery();
+  const { data: announcementData, refetch: refetchAnnouncements } =
+    useGetAllAnnouncementQuery();
+  const {
+    data: weatherData,
+    isLoading: weatherLoading,
+    refetch: refetchWeatherData,
+  } = useGetWeatherQuery(coords, { skip: !coords });
+
   const article = articlesData?.articles ?? [];
   const announcements = announcementData?.announcements ?? [];
 
@@ -56,6 +62,19 @@ const Home = () => {
       });
     })();
   }, []);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchAnnouncements(),
+        refetchArticles(),
+        coords ? refetchWeatherData() : Promise.resolve(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   return (
     <SafeAreaView style={style.safeArea}>
@@ -84,7 +103,17 @@ const Home = () => {
         </View>
       </View>
       {viewNotification && <NotificationComponent />}
-      <ScrollView vertical showsHorizontalScrollIndicator={false}>
+      <ScrollView
+        vertical
+        showsHorizontalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            color={["#303030"]}
+          />
+        }
+      >
         <TouchableOpacity className="mb-3 mt-3">
           <ImageBackground source={sunny} style={style.image}>
             <LinearGradient
