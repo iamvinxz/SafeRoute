@@ -1,15 +1,16 @@
 import "@/global.css";
+import { login } from "@/states/authSlice";
 import { store } from "@/store.js";
+import { getToken } from "@/utils/authStorage";
 import messaging from "@react-native-firebase/messaging";
 import { useFonts } from "expo-font";
 import * as Notification from "expo-notifications";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 
-//notification channel
 Notification.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -19,10 +20,35 @@ Notification.setNotificationHandler({
   }),
 });
 
-//background handler
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log("Background notification:", remoteMessage);
 });
+
+const AppInit = () => {
+  const dispatch = useDispatch();
+  const [authReady, setAuthReady] = useState(false);
+
+  useEffect(() => {
+    const restoreAuth = async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          dispatch(login({ token, user: null })); // restore token to Redux
+        }
+      } catch (e) {
+        console.error("Failed to restore auth:", e);
+      } finally {
+        setAuthReady(true);
+      }
+    };
+
+    restoreAuth();
+  }, []);
+
+  if (!authReady) return null; // wait before rendering anything
+
+  return <Slot />;
+};
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
@@ -43,7 +69,7 @@ const RootLayout = () => {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
-        <Slot />
+        <AppInit /> {/* ← replaced <Slot /> with this */}
       </SafeAreaProvider>
     </Provider>
   );
