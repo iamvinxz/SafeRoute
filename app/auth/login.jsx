@@ -1,11 +1,10 @@
 import { useLoginMutation } from "@/redux/authService";
-import { login, loginFailure } from "@/states/authSlice";
-import { Feather } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import { clearError, login, loginFailure } from "@/states/authSlice";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -23,198 +22,216 @@ const Login = () => {
   const dispatch = useDispatch();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const { isAuthenticated, token, error } = useSelector((state) => state.auth);
+  const { error } = useSelector((state) => state.auth);
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
 
   const handleLogin = async () => {
     try {
-      const response = await loginMutation({
-        phone,
-        password,
-      }).unwrap();
-
-      dispatch(login({ token: response.token }));
-    } catch (error) {
-      dispatch(loginFailure(error.data.message));
+      const response = await loginMutation({ phone, password }).unwrap();
+      console.log(response);
+      dispatch(login({ token: response.token, user: response.user }));
+    } catch (err) {
+      dispatch(loginFailure(err.data.message));
     }
   };
 
   return (
-    <LinearGradient
-      className="w-full h-full"
-      colors={["#DBD9D9", "#6E8DE0"]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <SafeAreaView className="flex-1">
+    <View style={style.root}>
+      {/* Top blue section */}
+      <View style={style.topSection}>
+        <SafeAreaView style={style.header}>
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={style.icon}
+            resizeMode="contain"
+          />
+          <Text style={style.title}>Welcome back,</Text>
+          <Text style={style.title}>Login</Text>
+        </SafeAreaView>
+      </View>
+
+      {/* Bottom gray section with rounded top */}
+      <View style={style.bottomSection}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
+          style={{ flex: 1 }}
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Header */}
-            <View className="items-center mb-7 mt-10">
-              <Text style={style.title}>Welcome to Saferoute</Text>
-
-              <Text style={style.subtitle}>Sign in to continue</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}
+          >
+            {/* Phone */}
+            <View style={style.fieldGroup}>
+              <Text style={style.label}>Phone</Text>
+              <TextInput
+                placeholder="Enter your phone number"
+                placeholderTextColor="#9a9a9a"
+                style={style.input}
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                value={phone}
+                onChangeText={setPhone}
+              />
             </View>
 
-            {/* Card */}
-            <View style={style.card}>
-              {/* PHone */}
-              <View className="mb-4">
-                <Text style={style.label}>Phone</Text>
-                <View style={style.inputWrapper}>
-                  <Feather name="phone" size={16} color="#6b6b6b" />
-                  <TextInput
-                    placeholder="Enter your phone number"
-                    placeholderTextColor="#9a9a9a"
-                    style={style.input}
-                    keyboardType="phone-pad"
-                    autoCapitalize="none"
-                    value={phone}
-                    onChangeText={setPhone}
-                  />
-                </View>
-              </View>
+            {/* Password */}
+            <View style={style.fieldGroup}>
+              <Text style={style.label}>Password</Text>
+              <TextInput
+                placeholder="Enter your password"
+                placeholderTextColor="#9a9a9a"
+                style={style.input}
+                secureTextEntry
+                autoCapitalize="none"
+                value={password}
+                onChangeText={setPassword}
+              />
+            </View>
 
-              {/* Password */}
-              <View className="mb-6">
-                <Text style={style.label}>Password</Text>
-                <View style={style.inputWrapper}>
-                  <Feather name="lock" size={16} color="#6b6b6b" />
-                  <TextInput
-                    placeholder="Enter your password"
-                    placeholderTextColor="#9a9a9a"
-                    style={[style.input, { flex: 1 }]}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    value={password}
-                    onChangeText={setPassword}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Feather
-                      name={showPassword ? "eye-off" : "eye"}
-                      size={16}
-                      color="#9a9a9a"
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
+            {/* Forgot Password */}
+            <TouchableOpacity style={style.forgotWrapper}>
+              <Text style={style.forgotText}>Forgot Password?</Text>
+            </TouchableOpacity>
 
-              {error && (
-                <View style={style.error}>
-                  <Text style={style.textError}>{error}</Text>
-                </View>
-              )}
+            {/* Error */}
+            {error && <Text style={style.errorText}>{error}</Text>}
 
-              {/* Sign In Button */}
+            <View style={style.buttons}>
+              {/* Log In Button */}
               <TouchableOpacity
-                style={style.button}
+                style={style.loginButton}
                 onPress={handleLogin}
                 disabled={isLoggingIn}
               >
                 {isLoggingIn ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text style={style.buttonText}>Sign In</Text>
+                  <Text style={style.loginButtonText}>Log in</Text>
                 )}
               </TouchableOpacity>
-            </View>
 
-            {/* Register Link */}
-            <View className="flex-row justify-center mt-6">
-              <Text style={style.linkText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => router.push("/auth/register")}>
-                <Text
-                  style={[
-                    style.linkText,
-                    { color: "#6E8DE0", fontWeight: "600" },
-                  ]}
-                >
-                  Sign Up
-                </Text>
+              {/* Sign Up Button */}
+              <TouchableOpacity
+                style={style.signupButton}
+                onPress={() => {
+                  dispatch(clearError());
+                  router.push("/auth/register");
+                }}
+              >
+                <Text style={style.signupButtonText}>Sign up</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+      </View>
+    </View>
   );
 };
 
 const style = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: "#BDD0EE", // blue top bg
+    color: "#303030",
+  },
+  topSection: {
+    backgroundColor: "#BDD0EE",
+    paddingHorizontal: 28,
+    paddingTop: 48,
+    paddingBottom: 60,
+    marginBottom: 10,
+  },
+  header: {
+    display: "flex",
+    gap: 10,
+  },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    color: "#303030",
+    lineHeight: 38,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
+  bottomSection: {
+    flex: 1,
+    backgroundColor: "#EFEFEF",
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingHorizontal: 24,
+    paddingTop: 32,
   },
-  card: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    marginHorizontal: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+  fieldGroup: {
+    marginBottom: 16,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#f9f9f9",
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#5B7FD4",
+    marginBottom: 6,
   },
   input: {
-    flex: 1,
-    marginLeft: 10,
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 14,
     color: "#1a1a1a",
+    borderWidth: 0,
+    // subtle shadow
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  button: {
-    backgroundColor: "#6E8DE0",
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginTop: 8,
+  forgotWrapper: {
+    alignItems: "flex-end",
+    marginBottom: 32,
+    marginTop: 4,
   },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
+  forgotText: {
+    fontSize: 13,
+    color: "#5B7FD4",
+    fontWeight: "500",
   },
-  linkText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  error: {
-    position: "relative",
-    top: -8,
-    left: 5,
-  },
-  textError: {
+  errorText: {
     color: "red",
     fontSize: 12,
-    fontFamily: "Montserrat",
+    marginBottom: 12,
+    marginLeft: 2,
+  },
+  loginButton: {
+    backgroundColor: "#5B7FD4",
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  loginButtonText: {
+    color: "white",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  signupButton: {
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: "#5B7FD4",
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  signupButtonText: {
+    color: "#5B7FD4",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  buttons: {
+    marginTop: 10,
+    display: "flex",
+    gap: 15,
+  },
+  icon: {
+    width: 64,
+    height: 64,
+    marginBottom: 16,
   },
 });
 
