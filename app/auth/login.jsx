@@ -1,5 +1,6 @@
 import { useLoginMutation } from "@/redux/authService";
 import { clearError, login, loginFailure } from "@/states/authSlice";
+import { saveToken } from "@/utils/authStorage";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -28,7 +29,7 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       const response = await loginMutation({ phone, password }).unwrap();
-      console.log(response);
+      await saveToken(response.token);
       dispatch(login({ token: response.token, user: response.user }));
     } catch (err) {
       dispatch(loginFailure(err.data.message));
