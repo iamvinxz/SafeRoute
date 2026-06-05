@@ -5,6 +5,7 @@ const initialState = {
   token: null,
   isAuthenticated: false,
   error: null,
+  user: null,
 };
 
 const authSlice = createSlice({
@@ -15,6 +16,7 @@ const authSlice = createSlice({
       state.token = action.payload.token;
       state.isAuthenticated = true;
       state.error = null;
+      state.user = action.payload.user;
 
       SecureStore.setItemAsync("token", action.payload.token);
     },
@@ -27,6 +29,7 @@ const authSlice = createSlice({
       state.token = null;
       state.isAuthenticated = false;
       state.error = null;
+      state.user = null;
 
       SecureStore.deleteItemAsync("token");
     },
