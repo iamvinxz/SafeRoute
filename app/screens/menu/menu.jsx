@@ -35,7 +35,9 @@ const data = [
 
 const Menu = () => {
   const dispatch = useDispatch();
-  const { token, isAuthenticated } = useSelector((state) => state.auth);
+  const { token, isAuthenticated, user } = useSelector((state) => state.auth);
+
+  console.log(user);
 
   const [logout] = useLogoutMutation();
 
@@ -66,7 +68,7 @@ const Menu = () => {
             </View>
             {/**profile info */}
             <View>
-              <Text style={style.font}>09123456789</Text>
+              <Text style={style.font}>{user.phone}</Text>
               <Text style={style.font}>Malabon City</Text>
             </View>
           </View>
