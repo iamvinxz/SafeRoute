@@ -4,6 +4,7 @@ const initialState = {
   age: null,
   phone: null,
   password: null,
+  confirmPassword: null,
   isPwd: null,
 };
 
@@ -20,6 +21,9 @@ const registerSlice = createSlice({
     setPassword: (state, action) => {
       state.password = action.payload;
     },
+    setConfirmPassword: (state, action) => {
+      state.confirmPassword = action.payload;
+    },
     setIsPwd: (state, action) => {
       state.isPwd = action.payload;
     },
@@ -27,6 +31,12 @@ const registerSlice = createSlice({
   },
 });
 
-export const { setAge, setPhone, setPassword, setIsPwd, clearRegister } =
-  registerSlice.actions;
+export const {
+  setAge,
+  setPhone,
+  setPassword,
+  setIsPwd,
+  setConfirmPassword,
+  clearRegister,
+} = registerSlice.actions;
 export default registerSlice.reducer;
