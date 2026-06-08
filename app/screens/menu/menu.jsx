@@ -38,8 +38,6 @@ const Menu = () => {
   const dispatch = useDispatch();
   const { token, isAuthenticated, user } = useSelector((state) => state.auth);
 
-  console.log(user);
-
   const [logout] = useLogoutMutation();
 
   const handleLogout = async () => {
