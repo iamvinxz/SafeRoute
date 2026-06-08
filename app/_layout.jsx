@@ -1,13 +1,14 @@
 import "@/global.css";
 import { store } from "@/store.js";
+import { getToken } from "@/utils/authStorage";
 import messaging from "@react-native-firebase/messaging";
 import { useFonts } from "expo-font";
 import * as Notification from "expo-notifications";
 import { Slot } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Provider } from "react-redux";
+import { Provider, useDispatch } from "react-redux";
 
 Notification.setNotificationHandler({
   handleNotification: async () => ({
