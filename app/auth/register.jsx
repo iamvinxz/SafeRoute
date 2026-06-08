@@ -15,7 +15,9 @@ import React, { useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,6 +27,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch, useSelector } from "react-redux";
+
+const TERMS = [
+  "The app is for emergency alerts and assistance only and does not guarantee immediate rescue. Use the app responsibly — false reports or misuse are strictly prohibited.",
+  "Use the app responsibly — false reports or misuse are strictly prohibited.",
+  "You agree to share accurate information, including your location, for emergency response.",
+  "We are not liable for delays, errors, or damages caused by network or system issues.",
+  "Services may be temporarily unavailable due to maintenance or technical problems.",
+  "We may update these terms at any time, and continued use means acceptance.",
+];
 
 const Register = () => {
   const router = useRouter();
@@ -36,6 +47,8 @@ const Register = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [termsModalVisible, setTermsModalVisible] = useState(false);
 
   const [register, { isLoading }] = useRegisterMutation();
 
@@ -58,17 +71,14 @@ const Register = () => {
         return;
       }
 
-      await register({
-        age,
-        phone,
-        password,
-        isPwd,
-      }).unwrap();
+      if (!agreedToTerms) {
+        dispatch(loginFailure("You must agree to the Terms & Conditions."));
+        return;
+      }
 
+      await register({ age, phone, password, isPwd }).unwrap();
       dispatch(clearRegister());
-
       Alert.alert("Success", "Account created successfully.");
-
       router.replace("/auth/login");
     } catch (error) {
       dispatch(loginFailure(error?.data?.message || "Registration failed."));
@@ -87,7 +97,10 @@ const Register = () => {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
         >
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* Header */}
             <View className="items-center mb-7 mt-10">
               <Text style={style.title}>Create account</Text>
@@ -197,7 +210,6 @@ const Register = () => {
               <View className="mb-5">
                 <Text style={style.label}>Are you a PWD?</Text>
                 <View style={style.radioGroup}>
-                  {/* Yes */}
                   <TouchableOpacity
                     style={style.radioOption}
                     onPress={() => dispatch(setIsPwd(true))}
@@ -207,8 +219,6 @@ const Register = () => {
                     </View>
                     <Text style={style.radioLabel}>Yes</Text>
                   </TouchableOpacity>
-
-                  {/* No */}
                   <TouchableOpacity
                     style={style.radioOption}
                     onPress={() => dispatch(setIsPwd(false))}
@@ -221,15 +231,39 @@ const Register = () => {
                 </View>
               </View>
 
-              {/* Button */}
+              {/* Terms & Conditions Checkbox */}
+              <View style={style.termsRow}>
+                <TouchableOpacity
+                  onPress={() => setAgreedToTerms((prev) => !prev)}
+                  style={style.checkbox}
+                  activeOpacity={0.7}
+                >
+                  {agreedToTerms ? (
+                    <Feather name="check-square" size={20} color="#6E8DE0" />
+                  ) : (
+                    <Feather name="square" size={20} color="#9a9a9a" />
+                  )}
+                </TouchableOpacity>
+                <Text style={style.termsText}>
+                  I agree to the{" "}
+                  <Text
+                    style={style.termsLink}
+                    onPress={() => setTermsModalVisible(true)}
+                  >
+                    Terms & Conditions
+                  </Text>
+                </Text>
+              </View>
+
+              {/* Buttons */}
               <View style={style.buttonCtn}>
                 <TouchableOpacity
-                  style={style.button}
-                  activeOpacity={0.85}
+                  style={[style.button, !agreedToTerms && style.buttonDisabled]}
+                  activeOpacity={agreedToTerms ? 0.85 : 1}
                   onPress={handleRegister}
+                  disabled={!agreedToTerms || isLoading}
                 >
                   <Text style={style.buttonText}>
-                    {" "}
                     {isLoading ? "Creating account..." : "Create account"}
                   </Text>
                 </TouchableOpacity>
@@ -237,9 +271,7 @@ const Register = () => {
                   style={style.clearBtn}
                   onPress={() => dispatch(clearRegister())}
                 >
-                  <Text style={style.clearBtnText} activeOpacity={0.85}>
-                    Clear
-                  </Text>
+                  <Text style={style.clearBtnText}>Clear</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -251,23 +283,61 @@ const Register = () => {
                 <Text style={style.footerLink}>Log in</Text>
               </TouchableOpacity>
             </View>
-            {authError && (
-              <Text
-                style={{
-                  color: "#dc2626",
-                  fontSize: 12,
-                  marginTop: 20,
-                  marginBottom: 10,
-                  fontFamily: "Montserrat",
-                  textAlign: "center",
-                }}
-              >
-                {authError}
-              </Text>
-            )}
+
+            {authError && <Text style={style.errorText}>{authError}</Text>}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Terms & Conditions Modal */}
+      <Modal
+        visible={termsModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setTermsModalVisible(false)}
+      >
+        <Pressable
+          style={style.modalOverlay}
+          onPress={() => setTermsModalVisible(false)}
+        >
+          {/* Pressable inside stops the overlay close from firing when tapping the card */}
+          <Pressable style={style.modalCard} onPress={() => {}}>
+            {/* Header */}
+            <View style={style.modalHeader}>
+              <Text style={style.modalTitle}>Terms & Conditions</Text>
+              <TouchableOpacity onPress={() => setTermsModalVisible(false)}>
+                <Feather name="x" size={20} color="#3a3a3a" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 8 }}
+            >
+              <Text style={style.modalIntro}>
+                By using this app, you agree to the following:
+              </Text>
+              {TERMS.map((item, index) => (
+                <View key={index} style={style.termItem}>
+                  <View style={style.termBullet} />
+                  <Text style={style.termItemText}>{item}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            {/* Agree button */}
+            <TouchableOpacity
+              style={style.modalAgreeBtn}
+              onPress={() => {
+                setAgreedToTerms(true);
+                setTermsModalVisible(false);
+              }}
+            >
+              <Text style={style.modalAgreeBtnText}>I Agree</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </LinearGradient>
   );
 };
@@ -348,6 +418,26 @@ const style = StyleSheet.create({
     fontSize: 13,
     color: "#2d2d2d",
   },
+  // Terms checkbox row
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 20,
+  },
+  checkbox: {
+    padding: 2,
+  },
+  termsText: {
+    fontFamily: "Montserrat",
+    fontSize: 13,
+    color: "#2d2d2d",
+    flexShrink: 1,
+  },
+  termsLink: {
+    color: "#2a50a8",
+    textDecorationLine: "underline",
+  },
   buttonCtn: {
     gap: 10,
   },
@@ -356,6 +446,9 @@ const style = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 13,
     alignItems: "center",
+  },
+  buttonDisabled: {
+    backgroundColor: "#b0bfef",
   },
   clearBtn: {
     backgroundColor: "white",
@@ -381,6 +474,76 @@ const style = StyleSheet.create({
     fontFamily: "Montserrat",
     fontSize: 13,
     color: "#2a50a8",
+  },
+  errorText: {
+    color: "#dc2626",
+    fontSize: 12,
+    marginTop: 20,
+    marginBottom: 10,
+    fontFamily: "Montserrat",
+    textAlign: "center",
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: "75%",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontFamily: "Montserrat",
+    fontSize: 16,
+    color: "#1a1a1a",
+  },
+  modalIntro: {
+    fontFamily: "Montserrat",
+    fontSize: 13,
+    color: "#4a4a4a",
+    marginBottom: 14,
+  },
+  termItem: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+    marginBottom: 12,
+  },
+  termBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#6E8DE0",
+    marginTop: 6,
+  },
+  termItemText: {
+    fontFamily: "Montserrat",
+    fontSize: 13,
+    color: "#3a3a3a",
+    lineHeight: 20,
+    flex: 1,
+  },
+  modalAgreeBtn: {
+    backgroundColor: "#6E8DE0",
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  modalAgreeBtnText: {
+    fontFamily: "Montserrat",
+    fontSize: 14,
+    color: "#fff",
   },
 });
 
