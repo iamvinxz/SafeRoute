@@ -22,31 +22,31 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   console.log("Background notification:", remoteMessage);
 });
 
-// const AppInit = () => {
-//   const dispatch = useDispatch();
-//   const [authReady, setAuthReady] = useState(false);
+const AppInit = () => {
+  const dispatch = useDispatch();
+  const [authReady, setAuthReady] = useState(false);
 
-//   useEffect(() => {
-//     const restoreAuth = async () => {
-//       try {
-//         const token = await getToken();
-//         if (token) {
-//           dispatch(login({ token, user: null })); // restore token to Redux
-//         }
-//       } catch (e) {
-//         console.error("Failed to restore auth:", e);
-//       } finally {
-//         setAuthReady(true);
-//       }
-//     };
+  useEffect(() => {
+    const restoreAuth = async () => {
+      try {
+        const token = await getToken();
+        if (token) {
+          dispatch(login({ token, user: null })); // restore token to Redux
+        }
+      } catch (e) {
+        console.error("Failed to restore auth:", e);
+      } finally {
+        setAuthReady(true);
+      }
+    };
 
-//     restoreAuth();
-//   }, []);
+    restoreAuth();
+  }, []);
 
-//   if (!authReady) return null; // wait before rendering anything
+  if (!authReady) return null; // wait before rendering anything
 
-//   return <Slot />;
-// };
+  return <Slot />;
+};
 
 const RootLayout = () => {
   const [fontsLoaded, fontError] = useFonts({
@@ -67,7 +67,7 @@ const RootLayout = () => {
   return (
     <Provider store={store}>
       <SafeAreaProvider>
-        <Slot />
+        <AppInit />
       </SafeAreaProvider>
     </Provider>
   );
