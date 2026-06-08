@@ -1,6 +1,7 @@
 import { useLoginMutation } from "@/redux/authService";
 import { clearError, login, loginFailure } from "@/states/authSlice";
 import { saveToken } from "@/utils/authStorage";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -23,6 +24,7 @@ const Login = () => {
   const dispatch = useDispatch();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👁️ toggle state
   const { error } = useSelector((state) => state.auth);
   const [loginMutation, { isLoading: isLoggingIn }] = useLoginMutation();
 
@@ -37,29 +39,32 @@ const Login = () => {
   };
 
   return (
-    <View style={style.root}>
-      {/* Top blue section */}
-      <View style={style.topSection}>
-        <SafeAreaView style={style.header}>
-          <Image
-            source={require("@/assets/images/icon.png")}
-            style={style.icon}
-            resizeMode="contain"
-          />
-          <Text style={style.title}>Welcome back,</Text>
-          <Text style={style.title}>Login</Text>
-        </SafeAreaView>
-      </View>
+    // KeyboardAvoidingView wraps everything so the whole layout shifts up
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "android" ? 20 : 0}
+    >
+      <View style={style.root}>
+        {/* Top blue section */}
+        <View style={style.topSection}>
+          <SafeAreaView style={style.header}>
+            <Image
+              source={require("@/assets/images/icon.png")}
+              style={style.icon}
+              resizeMode="contain"
+            />
+            <Text style={style.title}>Welcome back,</Text>
+            <Text style={style.title}>Login</Text>
+          </SafeAreaView>
+        </View>
 
-      {/* Bottom gray section with rounded top */}
-      <View style={style.bottomSection}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
+        {/* Bottom gray section */}
+        <View style={style.bottomSection}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled" // tapping login button won't dismiss keyboard first
           >
             {/* Phone */}
             <View style={style.fieldGroup}>
@@ -78,15 +83,27 @@ const Login = () => {
             {/* Password */}
             <View style={style.fieldGroup}>
               <Text style={style.label}>Password</Text>
-              <TextInput
-                placeholder="Enter your password"
-                placeholderTextColor="#9a9a9a"
-                style={style.input}
-                secureTextEntry
-                autoCapitalize="none"
-                value={password}
-                onChangeText={setPassword}
-              />
+              <View style={style.passwordWrapper}>
+                <TextInput
+                  placeholder="Enter your password"
+                  placeholderTextColor="#9a9a9a"
+                  style={style.passwordInput}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  style={style.eyeIcon}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={20}
+                    color="#9a9a9a"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Forgot Password */}
@@ -98,7 +115,6 @@ const Login = () => {
             {error && <Text style={style.errorText}>{error}</Text>}
 
             <View style={style.buttons}>
-              {/* Log In Button */}
               <TouchableOpacity
                 style={style.loginButton}
                 onPress={handleLogin}
@@ -111,7 +127,6 @@ const Login = () => {
                 )}
               </TouchableOpacity>
 
-              {/* Sign Up Button */}
               <TouchableOpacity
                 style={style.signupButton}
                 onPress={() => {
@@ -123,17 +138,16 @@ const Login = () => {
               </TouchableOpacity>
             </View>
           </ScrollView>
-        </KeyboardAvoidingView>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const style = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: "#BDD0EE", // blue top bg
-    color: "#303030",
+    backgroundColor: "#BDD0EE",
   },
   topSection: {
     backgroundColor: "#BDD0EE",
@@ -176,13 +190,34 @@ const style = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 14,
     color: "#1a1a1a",
-    borderWidth: 0,
-    // subtle shadow
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
+  },
+  // 👇 password field split into wrapper + input + icon
+  passwordWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#1a1a1a",
+  },
+  eyeIcon: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
   },
   forgotWrapper: {
     alignItems: "flex-end",
@@ -226,7 +261,6 @@ const style = StyleSheet.create({
   },
   buttons: {
     marginTop: 10,
-    display: "flex",
     gap: 15,
   },
   icon: {
