@@ -1,5 +1,6 @@
 import { api } from "@/redux/APIService";
 import { GeoJsonApi } from "@/redux/GeoJsonService";
+import { osrmApi } from "@/redux/osrmService";
 import authReducer from "@/states/authSlice";
 import floodReportReducer from "@/states/floodReportSlice";
 import modalReducer from "@/states/modalSlice";
@@ -11,6 +12,7 @@ export const store = configureStore({
   reducer: {
     [GeoJsonApi.reducerPath]: GeoJsonApi.reducer,
     [api.reducerPath]: api.reducer,
+    [osrmApi.reducerPath]: osrmApi.reducer,
     auth: authReducer,
     register: registerReducer,
     modal: modalReducer,
@@ -20,5 +22,6 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false })
       .concat(GeoJsonApi.middleware)
-      .concat(api.middleware),
+      .concat(api.middleware)
+      .concat(osrmApi.middleware),
 });
