@@ -6,7 +6,6 @@ import {
   setConfirmPassword,
   setIsPwd,
   setPassword,
-  setPhone,
 } from "@/states/registerSlice";
 import { Feather } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -51,12 +50,24 @@ const Register = () => {
   const [termsModalVisible, setTermsModalVisible] = useState(false);
 
   const [register, { isLoading }] = useRegisterMutation();
+  const [rawPhone, setRawPhone] = useState("");
+
+  const isFormComplete =
+    age?.trim() !== "" &&
+    age !== null &&
+    rawPhone.length === 10 &&
+    password?.length > 0 &&
+    confirmPassword?.length > 0 &&
+    isPwd !== null &&
+    agreedToTerms;
 
   const handleRegister = async () => {
     try {
       dispatch(clearError());
 
-      if (!age || !phone || !password || !confirmPassword) {
+      const fullPhone = "+63" + rawPhone;
+
+      if (!age || !rawPhone || !password || !confirmPassword) {
         dispatch(loginFailure("Please complete all fields."));
         return;
       }
@@ -76,12 +87,19 @@ const Register = () => {
         return;
       }
 
-      await register({ age, phone, password, isPwd }).unwrap();
+      await register({
+        age,
+        phone: fullPhone,
+        password,
+        isPWD: isPwd,
+      }).unwrap();
       dispatch(clearRegister());
+      setRawPhone("");
       Alert.alert("Success", "Account created successfully.");
       router.replace("/auth/login");
     } catch (error) {
       dispatch(loginFailure(error?.data?.message || "Registration failed."));
+      console.log(error);
     }
   };
 
@@ -133,16 +151,20 @@ const Register = () => {
                 <Text style={style.label}>Phone</Text>
                 <View style={style.inputWrapper}>
                   <Feather name="phone" size={16} color="#6b6b6b" />
+                  {/* Locked prefix */}
+                  <Text style={style.phonePrefix}>+63</Text>
+                  <View style={style.phoneDivider} />
                   <TextInput
-                    placeholder="Enter your phone number"
+                    placeholder="9XXXXXXXXX"
                     placeholderTextColor="#9a9a9a"
-                    style={style.input}
-                    keyboardType="phone-pad"
-                    autoCapitalize="none"
-                    value={phone}
+                    style={[style.input, { flex: 1 }]}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                    value={rawPhone}
                     onChangeText={(text) => {
                       dispatch(clearError());
-                      dispatch(setPhone(text));
+                      // strip anything that isn't a digit
+                      setRawPhone(text.replace(/\D/g, ""));
                     }}
                   />
                 </View>
@@ -255,13 +277,18 @@ const Register = () => {
                 </Text>
               </View>
 
+              {authError && <Text style={style.errorText}>{authError}</Text>}
+
               {/* Buttons */}
               <View style={style.buttonCtn}>
                 <TouchableOpacity
-                  style={[style.button, !agreedToTerms && style.buttonDisabled]}
-                  activeOpacity={agreedToTerms ? 0.85 : 1}
+                  style={[
+                    style.button,
+                    !isFormComplete && style.buttonDisabled,
+                  ]}
+                  activeOpacity={isFormComplete ? 0.85 : 1}
                   onPress={handleRegister}
-                  disabled={!agreedToTerms || isLoading}
+                  disabled={!isFormComplete || isLoading}
                 >
                   <Text style={style.buttonText}>
                     {isLoading ? "Creating account..." : "Create account"}
@@ -269,7 +296,10 @@ const Register = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={style.clearBtn}
-                  onPress={() => dispatch(clearRegister())}
+                  onPress={() => {
+                    dispatch(clearRegister());
+                    setRawPhone("");
+                  }}
                 >
                   <Text style={style.clearBtnText}>Clear</Text>
                 </TouchableOpacity>
@@ -283,8 +313,6 @@ const Register = () => {
                 <Text style={style.footerLink}>Log in</Text>
               </TouchableOpacity>
             </View>
-
-            {authError && <Text style={style.errorText}>{authError}</Text>}
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -544,6 +572,18 @@ const style = StyleSheet.create({
     fontFamily: "Montserrat",
     fontSize: 14,
     color: "#fff",
+  },
+  phonePrefix: {
+    fontFamily: "Montserrat",
+    fontSize: 13,
+    color: "#2d2d2d",
+    paddingRight: 8,
+  },
+  phoneDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: "rgba(0,0,0,0.15)",
+    marginRight: 8,
   },
 });
 
