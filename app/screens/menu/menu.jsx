@@ -69,7 +69,7 @@ const Menu = () => {
             {/**profile info */}
             <View>
               <Text style={style.font}>{user.phone}</Text>
-              <Text style={style.font}>Malabon City</Text>
+              <Text style={style.font}>Tinajeros, Malabon City</Text>
             </View>
           </View>
         </View>
