@@ -11,6 +11,7 @@ import {
   Dimensions,
   Image,
   ImageBackground,
+  Linking,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -195,12 +196,36 @@ const Home = () => {
                 .slice()
                 .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) //sort for latest
                 .map((article, _index) => (
-                  <View key={article._id} style={style.articleCard}>
+                  <TouchableOpacity
+                    key={article._id}
+                    style={style.articleCard}
+                    onPress={() => {
+                      if (article.sourceLink) {
+                        Linking.openURL(article.sourceLink);
+                      }
+                    }}
+                    activeOpacity={article.sourceLink ? 0.7 : 1}
+                  >
+                    {/* photo */}
                     {article.photoUrl ? (
-                      <View style={style.articleImage}>
-                        <Text>image placeholder</Text>
+                      <View style={[style.articleImage, { elevation: 2 }]}>
+                        <Image
+                          source={{ uri: article.photoUrl }}
+                          style={{ flex: 1, borderRadius: 4 }}
+                          resizeMode="cover"
+                        />
                       </View>
-                    ) : null}
+                    ) : (
+                      <View
+                        style={[style.articleImage, style.articleImageFallback]}
+                      >
+                        <Ionicons
+                          name="image-outline"
+                          size={24}
+                          color="#c0c0c0"
+                        />
+                      </View>
+                    )}
 
                     <View style={style.articleInfo}>
                       <Text style={style.articleTitle}>{article.title}</Text>
@@ -208,6 +233,7 @@ const Home = () => {
                         {article.description}
                       </Text>
                     </View>
+
                     <View style={style.footer}>
                       <Text style={style.createdAt}>
                         {article.createdAt
@@ -225,7 +251,7 @@ const Home = () => {
                           : null}
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))}
             </ScrollView>
           </View>
@@ -321,13 +347,16 @@ const style = StyleSheet.create({
     justifyContent: "space-between",
   },
   articleImage: {
-    backgroundColor: "white",
     height: 90,
     width: "100%",
     marginTop: 8,
     borderRadius: 4,
     alignSelf: "center",
-    elevation: 2,
+  },
+  articleImageFallback: {
+    backgroundColor: "#efefef",
+    alignItems: "center",
+    justifyContent: "center",
   },
   articleInfo: {
     marginTop: 8,
