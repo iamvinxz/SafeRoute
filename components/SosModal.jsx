@@ -25,9 +25,11 @@ export default function SosModal({ visible, onClose }) {
   const [streetName, setStreetName] = useState();
   const [condition, setCondition] = useState("ankle-deep");
   const [sendSos, { isLoading }] = useSendSosMutation();
+  const [error, setError] = useState(null);
 
   const handleSubmit = async () => {
     try {
+      setError(null);
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
 
@@ -47,10 +49,7 @@ export default function SosModal({ visible, onClose }) {
 
       await AsyncStorage.setItem(
         "activeSos",
-        JSON.stringify({
-          sosId,
-          status: "pending",
-        }),
+        JSON.stringify({ sosId, status: "pending" }),
       );
 
       setNumberOfPersons("");
@@ -58,9 +57,10 @@ export default function SosModal({ visible, onClose }) {
       setCondition("ankle-deep");
       onClose();
     } catch (error) {
-      console.error("SOS error:", error);
+      setError(error?.data?.message || "Failed to send SOS. Please try again.");
     }
   };
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
@@ -129,10 +129,14 @@ export default function SosModal({ visible, onClose }) {
                   </View>
                 </View>
 
+                {error && <Text style={styles.errorText}>{error}</Text>}
                 <View style={styles.actions}>
                   <TouchableOpacity
                     style={styles.cancelBtn}
-                    onPress={onClose}
+                    onPress={() => {
+                      setError(null);
+                      onClose();
+                    }}
                     disabled={isLoading}
                   >
                     <Text style={styles.cancelText}>Cancel</Text>
@@ -159,6 +163,13 @@ export default function SosModal({ visible, onClose }) {
 }
 
 const styles = StyleSheet.create({
+  errorText: {
+    fontSize: 12,
+    color: "#dc2626",
+    fontFamily: "Montserrat",
+    textAlign: "center",
+    marginTop: -8,
+  },
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
