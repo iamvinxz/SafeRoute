@@ -1,5 +1,13 @@
 import { api } from "@/redux/APIService";
-import { GET_ME, LOGIN, LOGOUT, REGISTER } from "@/redux/Endpoint";
+import {
+  FORGOT_PASSWORD,
+  GET_ME,
+  LOGIN,
+  LOGOUT,
+  REGISTER,
+  RESET_PASSWORD,
+  VERIFY_OTP,
+} from "@/redux/Endpoint";
 
 export const authApi = api.injectEndpoints({
   endpoints: (build) => ({
@@ -29,6 +37,27 @@ export const authApi = api.injectEndpoints({
       }),
       providesTags: ["Me"],
     }),
+    forgotPassword: build.mutation({
+      query: (payload) => ({
+        url: FORGOT_PASSWORD,
+        method: "POST",
+        body: payload,
+      }),
+    }),
+    verifyResetOtp: build.mutation({
+      query: (payload) => ({
+        url: VERIFY_OTP,
+        method: "POST",
+        body: payload,
+      }),
+    }),
+    resetPassword: build.mutation({
+      query: (payload) => ({
+        url: RESET_PASSWORD,
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
   overrideExisting: true,
 });
@@ -38,4 +67,7 @@ export const {
   useLogoutMutation,
   useRegisterMutation,
   useGetMeQuery,
+  useForgotPasswordMutation,
+  useVerifyResetOtpMutation,
+  useResetPasswordMutation,
 } = authApi;
