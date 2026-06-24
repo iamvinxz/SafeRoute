@@ -228,8 +228,18 @@ const Home = () => {
                     )}
 
                     <View style={style.articleInfo}>
-                      <Text style={style.articleTitle}>{article.title}</Text>
-                      <Text style={style.articleDescription}>
+                      <Text
+                        style={style.articleTitle}
+                        numberOfLines={2}
+                        ellipsizeMode="tail"
+                      >
+                        {article.title}
+                      </Text>
+                      <Text
+                        style={style.articleDescription}
+                        numberOfLines={3}
+                        ellipsizeMode="tail"
+                      >
                         {article.description}
                       </Text>
                     </View>
@@ -347,7 +357,7 @@ const style = StyleSheet.create({
     justifyContent: "space-between",
   },
   articleImage: {
-    height: 90,
+    height: 80,
     width: "100%",
     marginTop: 8,
     borderRadius: 4,
@@ -365,10 +375,16 @@ const style = StyleSheet.create({
   },
   articleTitle: {
     fontFamily: "Montserrat",
+    fontSize: 13,
+    lineHeight: 15,
+    numberOfLines: 2,
+    marginBottom: 2,
   },
   articleDescription: {
     fontFamily: "Montserrat",
     fontSize: 10,
+    lineHeight: 14,
+    marginTop: 2,
   },
   createdAt: {
     fontFamily: "Montserrat",
