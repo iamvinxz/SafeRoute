@@ -37,6 +37,7 @@ export const useFCM = () => {
 
         await messaging().subscribeToTopic("users");
         await messaging().subscribeToTopic("flood_alerts");
+        await messaging().subscribeToTopic("flood_alerts_tinajeros");
       } catch (e) {
         console.error("Setup crashed:", e);
       }
