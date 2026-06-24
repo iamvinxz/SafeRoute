@@ -1,6 +1,7 @@
 import "@/global.css";
+import { login } from "@/states/authSlice";
 import { store } from "@/store.js";
-import { getToken } from "@/utils/authStorage";
+import { getToken, getUser } from "@/utils/authStorage";
 import messaging from "@react-native-firebase/messaging";
 import { useFonts } from "expo-font";
 import * as Notification from "expo-notifications";
@@ -31,8 +32,9 @@ const AppInit = () => {
     const restoreAuth = async () => {
       try {
         const token = await getToken();
+        const user = await getUser();
         if (token) {
-          dispatch(login({ token, user: null })); // restore token to Redux
+          dispatch(login({ token, user }));
         }
       } catch (e) {
         console.error("Failed to restore auth:", e);

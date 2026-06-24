@@ -1,6 +1,6 @@
 import { useLoginMutation } from "@/redux/authService";
 import { clearError, login, loginFailure } from "@/states/authSlice";
-import { saveToken } from "@/utils/authStorage";
+import { saveToken, saveUser } from "@/utils/authStorage";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -36,6 +36,7 @@ const Login = () => {
         password,
       }).unwrap();
       await saveToken(response.token);
+      await saveUser(response.user);
       dispatch(login({ token: response.token, user: response.user }));
     } catch (err) {
       dispatch(loginFailure(err?.data?.message || "Login failed."));

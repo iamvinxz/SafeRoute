@@ -1,7 +1,7 @@
 import { api } from "@/redux/APIService";
 import { useLogoutMutation } from "@/redux/authService";
 import { clearCredentials } from "@/states/authSlice";
-import { removeToken } from "@/utils/authStorage";
+import { removeToken, removeUser } from "@/utils/authStorage";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -44,6 +44,7 @@ const Menu = () => {
     try {
       await logout().unwrap();
       await removeToken();
+      await removeUser();
       dispatch(api.util.resetApiState()); //clear cache
       dispatch(clearCredentials());
     } catch (error) {
@@ -68,7 +69,7 @@ const Menu = () => {
             </View>
             {/**profile info */}
             <View>
-              <Text style={style.font}>{user.phone}</Text>
+              <Text style={style.font}>{user?.phone ?? "—"}</Text>
               <Text style={style.font}>Tinajeros, Malabon City</Text>
             </View>
           </View>
