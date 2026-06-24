@@ -22,7 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 const Login = () => {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [phone, setPhone] = useState("");
+  const [rawPhone, setRawPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // 👁️ toggle state
   const { error } = useSelector((state) => state.auth);
@@ -30,11 +30,15 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await loginMutation({ phone, password }).unwrap();
+      const fullPhone = "+63" + rawPhone;
+      const response = await loginMutation({
+        phone: fullPhone,
+        password,
+      }).unwrap();
       await saveToken(response.token);
       dispatch(login({ token: response.token, user: response.user }));
     } catch (err) {
-      dispatch(loginFailure(err.data.message));
+      dispatch(loginFailure(err?.data?.message || "Login failed."));
     }
   };
 
@@ -69,15 +73,19 @@ const Login = () => {
             {/* Phone */}
             <View style={style.fieldGroup}>
               <Text style={style.label}>Phone</Text>
-              <TextInput
-                placeholder="Enter your phone number"
-                placeholderTextColor="#9a9a9a"
-                style={style.input}
-                keyboardType="phone-pad"
-                autoCapitalize="none"
-                value={phone}
-                onChangeText={setPhone}
-              />
+              <View style={style.phoneWrapper}>
+                <Text style={style.phonePrefix}>+63</Text>
+                <View style={style.phoneDivider} />
+                <TextInput
+                  placeholder="9XXXXXXXXX"
+                  placeholderTextColor="#9a9a9a"
+                  style={style.phoneInput}
+                  keyboardType="number-pad"
+                  maxLength={10}
+                  value={rawPhone}
+                  onChangeText={(text) => setRawPhone(text.replace(/\D/g, ""))}
+                />
+              </View>
             </View>
 
             {/* Password */}
@@ -98,7 +106,7 @@ const Login = () => {
                   style={style.eyeIcon}
                 >
                   <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    name={!showPassword ? "eye-off-outline" : "eye-outline"}
                     size={20}
                     color="#9a9a9a"
                   />
@@ -183,19 +191,6 @@ const style = StyleSheet.create({
     color: "#5B7FD4",
     marginBottom: 6,
   },
-  input: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    color: "#1a1a1a",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
-  },
   // 👇 password field split into wrapper + input + icon
   passwordWrapper: {
     flexDirection: "row",
@@ -267,6 +262,36 @@ const style = StyleSheet.create({
     width: 64,
     height: 64,
     marginBottom: 16,
+  },
+  phoneWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  phonePrefix: {
+    fontSize: 14,
+    color: "#1a1a1a",
+    paddingVertical: 12,
+    paddingRight: 8,
+  },
+  phoneDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: "rgba(0,0,0,0.15)",
+    marginRight: 8,
+  },
+  phoneInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: "#1a1a1a",
   },
 });
 
