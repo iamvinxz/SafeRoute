@@ -48,6 +48,9 @@ const CreateFloodReport = () => {
   const [streetSearch, setStreetSearch] = useState("");
   const [locating, setLocating] = useState(false);
 
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+
   //rtk query
   const [createReport, { isLoading: creatingReport }] =
     useCreateFloodReportMutation();
@@ -138,10 +141,26 @@ const CreateFloodReport = () => {
     }
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!photoUrl) newErrors.photo = "Please take a photo of the flood.";
+    if (!streetName) newErrors.streetName = "Please select a street.";
+    if (!floodDepth) newErrors.floodDepth = "Please select the flood depth.";
+    if (!description.trim())
+      newErrors.description = "Please describe the situation.";
+    if (!coords)
+      newErrors.coords =
+        "Location is required. Please wait or tap 'Use my location'.";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async () => {
+    setSubmitError("");
+    if (!validate()) return;
+
     try {
       const formData = new FormData();
-
       formData.append("streetName", streetName);
       formData.append("floodDepth", floodDepth.toLowerCase());
       formData.append("description", description);
@@ -153,12 +172,15 @@ const CreateFloodReport = () => {
         type: "image/jpg",
       });
 
-      const result = await createReport(formData).unwrap();
-
+      await createReport(formData).unwrap();
       dispatch(resetReport());
       dispatch(isOpen());
     } catch (error) {
-      console.log(error);
+      const message =
+        error?.data?.error ||
+        error?.data?.message ||
+        "Something went wrong. Please try again.";
+      setSubmitError(message);
     }
   };
 
@@ -214,7 +236,7 @@ const CreateFloodReport = () => {
             <View style={style.field}>
               <Text style={style.label}>Photo</Text>
               <TouchableOpacity
-                style={style.photoBox}
+                style={[style.photoBox, errors.photo && style.inputError]}
                 onPress={handleCameraPress}
               >
                 {photoUrl ? (
@@ -238,6 +260,9 @@ const CreateFloodReport = () => {
                   </View>
                 )}
               </TouchableOpacity>
+              {errors.photo && (
+                <Text style={style.errorText}>{errors.photo}</Text>
+              )}
             </View>
 
             {/* Street Name */}
@@ -258,10 +283,13 @@ const CreateFloodReport = () => {
                     {locating ? "Locating..." : "Use my location"}
                   </Text>
                 </TouchableOpacity>
+                {errors.streetName && (
+                  <Text style={style.errorText}>{errors.streetName}</Text>
+                )}
               </View>
 
               <TouchableOpacity
-                style={style.dropdown}
+                style={[style.dropdown, errors.streetName && style.inputError]}
                 onPress={() => setStreetOpen(true)}
               >
                 <Text
@@ -275,6 +303,9 @@ const CreateFloodReport = () => {
                 </Text>
                 <ChevronDown size={16} color="#888" />
               </TouchableOpacity>
+              {errors.streetName && (
+                <Text style={style.errorText}>{errors.streetName}</Text>
+              )}
 
               <Modal
                 visible={streetOpen}
@@ -344,7 +375,7 @@ const CreateFloodReport = () => {
               <Text style={style.label}>Flood depth</Text>
 
               <TouchableOpacity
-                style={style.dropdown}
+                style={[style.dropdown, errors.floodDepth && style.inputError]}
                 onPress={() => setDepthOpen(true)}
               >
                 <Text
@@ -358,6 +389,9 @@ const CreateFloodReport = () => {
                 </Text>
                 <ChevronDown size={16} color="#888" />
               </TouchableOpacity>
+              {errors.floodDepth && (
+                <Text style={style.errorText}>{errors.floodDepth}</Text>
+              )}
 
               <Modal
                 visible={depthOpen}
@@ -395,16 +429,37 @@ const CreateFloodReport = () => {
             <View style={style.field}>
               <Text style={style.label}>Description</Text>
               <TextInput
-                style={[style.input, style.textarea]}
+                style={[
+                  style.input,
+                  style.textarea,
+                  errors.description && style.inputError,
+                ]}
                 placeholder="Describe the flood situation..."
                 placeholderTextColor="#bbb"
                 value={description}
-                onChangeText={(text) => dispatch(setDescription(text))}
+                onChangeText={(text) => {
+                  dispatch(setDescription(text));
+                  if (errors.description)
+                    setErrors((e) => ({ ...e, description: "" }));
+                }}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
               />
+              {errors.description && (
+                <Text style={style.errorText}>{errors.description}</Text>
+              )}
             </View>
+
+            {errors.coords && (
+              <Text style={style.errorText}>{errors.coords}</Text>
+            )}
+
+            {submitError !== "" && (
+              <View style={style.submitErrorBox}>
+                <Text style={style.submitErrorText}>{submitError}</Text>
+              </View>
+            )}
 
             {/* Submit */}
             <TouchableOpacity style={style.submitBtn} onPress={handleSubmit}>
@@ -649,5 +704,26 @@ const style = StyleSheet.create({
     color: "#aaa",
     fontSize: 13,
     paddingVertical: 20,
+  },
+  inputError: {
+    borderColor: "#ef4444",
+    borderWidth: 1.5,
+  },
+  errorText: {
+    fontSize: 11,
+    color: "#ef4444",
+    marginTop: -4,
+  },
+  submitErrorBox: {
+    backgroundColor: "#fef2f2",
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  submitErrorText: {
+    fontSize: 12,
+    color: "#dc2626",
   },
 });
