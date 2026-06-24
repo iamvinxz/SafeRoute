@@ -15,3 +15,6 @@ export const UPDATE_FCM_TOKEN = "/api/user/fcmToken";
 export const GET_SOS_BY_ID = "/api/sos/getSOSbyId";
 export const GET_ALL_ANNOUNCEMENT = "/api/notifications/all/announcement";
 export const GET_WEATHER_TODAY = "api/weather/current";
+export const FORGOT_PASSWORD = "/api/auth/forgot-password";
+export const VERIFY_OTP = "/api/auth/verify-otp";
+export const RESET_PASSWORD = "/api/auth/reset-password";
